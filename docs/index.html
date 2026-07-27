@@ -302,11 +302,10 @@ body[data-skin="rich"] #login .glow{animation-duration:11s}
 <body data-tab="youth">
 
 <div id="login">
-  <!-- 背景動画のスロット。media/login-bg.mp4 を置くと動く。無ければ下の色だけ -->
+  <!-- 背景動画。画面の向きで縦用・横用を出し分ける（下の起動処理で src を入れる）。
+       ファイルが無ければ消えて、下のグラデーションだけになる -->
   <video class="login-media" id="lgVideo" autoplay muted loop playsinline
-         onerror="this.remove()" poster="">
-    <source src="media/login-bg.mp4" type="video/mp4">
-  </video>
+         onerror="this.remove()" poster=""></video>
   <div class="login-veil"></div>
   <div class="glow"></div>
   <div class="box">
@@ -1268,10 +1267,13 @@ function logout(){
 /* ---------- 起動 ---------- */
 meBtn.onclick = pickMe;
 
-/* 背景動画は端末によって自動再生が止められることがあるので、都度そっと動かす */
+/* 背景動画。横長の画面では絵の全体が入る横用を使う。
+   端末によって自動再生が止められることがあるので、都度そっと動かす */
 (function(){
   const v = document.getElementById('lgVideo');
   if(!v) return;
+  const wide = window.matchMedia('(min-aspect-ratio: 1/1)').matches;
+  v.src = wide ? 'media/login-bg-wide.mp4' : 'media/login-bg.mp4';
   const kick = () => { const p = v.play(); if(p) p.catch(()=>{}); };
   kick();
   ['loadeddata','canplay'].forEach(ev => v.addEventListener(ev, kick));
