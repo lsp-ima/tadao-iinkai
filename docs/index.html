@@ -88,6 +88,10 @@ body.has-bg .bg-scrim{display:block;
 .next .meta{font-size:14px;color:rgba(255,255,255,.9);margin-top:4px}
 .next .count{display:inline-block;margin-top:10px;background:rgba(255,255,255,.2);
   padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700}
+.next .cal{display:inline-block;margin:10px 0 0 8px;padding:5px 12px;border-radius:999px;
+  font-size:13px;font-weight:700;color:#fff;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.3)}
+.next .cal:active{background:rgba(255,255,255,.24)}
 .ans{display:flex;gap:8px;margin-top:14px}
 .ans button{flex:1;padding:12px 4px;border-radius:11px;background:rgba(255,255,255,.16);
   color:#fff;font-weight:700;font-size:14px;border:1.5px solid rgba(255,255,255,.3)}
@@ -638,6 +642,7 @@ function renderHome(){
       <div class="meta">${esc(m.time||'')}〜　${esc(m.place||'場所未定')}</div>
       <div class="meta">第${m.no}回${esc(C().unit)}</div>
       <span class="count">${dl===0?'本日':dl>0?`あと${dl}日`:'日程が過ぎています'}</span>
+      <button class="cal" onclick="showCalHelp('${m.id}')">📅 カレンダーに入れる</button>
       ${ME() ? `<div class="ans">
         ${Object.entries(STATUS).map(([k,v])=>
           `<button aria-pressed="${my===k}" onclick="answer('${m.id}','${k}')">${v}</button>`).join('')}
@@ -666,6 +671,63 @@ function renderHome(){
 
   view_(h);
 }
+/* ---------- Googleカレンダー ---------- */
+/** その会議1件を、Googleカレンダーの登録画面に渡すURL */
+function calUrl(m){
+  const pad = n => String(n).padStart(2,'0');
+  const [y,mo,d] = (m.date||'').split('-').map(Number);
+  const [hh,mi] = (m.time||'19:00').split(':').map(Number);
+  if(!y) return '';
+  const st = new Date(y, mo-1, d, hh, mi);
+  const en = new Date(st.getTime() + 2*60*60*1000);   // 2時間で仮置き
+  const f = t => `${t.getFullYear()}${pad(t.getMonth()+1)}${pad(t.getDate())}T${pad(t.getHours())}${pad(t.getMinutes())}00`;
+  const q = new URLSearchParams({
+    action:'TEMPLATE',
+    text:`${C().short} 第${m.no}回`,
+    dates:`${f(st)}/${f(en)}`,
+    location:m.place || '',
+    details:`${C().name}\n${location.href}`,
+    ctz:'Asia/Tokyo'
+  });
+  return 'https://calendar.google.com/calendar/render?' + q.toString();
+}
+function openCal(mid){
+  const m = C().meetings.find(x=>x.id===mid);
+  const url = m && calUrl(m);
+  if(!url){ toast('日付が入っていません'); return; }
+  window.open(url, '_blank', 'noopener');
+}
+/** まとめて購読するためのURL（カレンダー側に登録すると自動で追いかける） */
+function icsUrl(){
+  if(DEMO || !lgPassCache) return '';
+  return `${GAS_URL}?action=ics&committee=${tab}&key=${encodeURIComponent(lgPassCache)}`;
+}
+function showCalHelp(mid){
+  const u = icsUrl();
+  openModal('カレンダーに入れる', `
+    <div class="card">
+      <h2>この1件だけ入れる</h2>
+      <button class="btn wide" onclick="openCal('${mid}')">📅 Googleカレンダーで開く</button>
+      <p class="muted small" style="margin:10px 2px 0">登録画面が開きます。内容を確認して保存してください。</p>
+    </div>
+    <div class="card">
+      <h2>これから先ぜんぶ、自動で</h2>
+      ${u ? `<p class="small" style="margin:0 0 10px">下のURLを、Googleカレンダーの
+        「他のカレンダー ＋ → URLで追加」に貼ると、この委員会の予定がまとめて入ります。
+        日程が変わったときも、カレンダー側が追いかけます。</p>
+        <input type="text" id="icsBox" value="${esc(u)}" readonly onclick="this.select()">
+        <button class="btn wide sm" style="margin-top:10px" onclick="copyIcs()">URLをコピー</button>`
+      : `<p class="muted small" style="margin:0">この端末では、一度ログインし直すと使えるようになります。</p>`}
+    </div>`);
+}
+function copyIcs(){
+  const el = document.getElementById('icsBox');
+  el.select();
+  navigator.clipboard.writeText(el.value)
+    .then(()=>toast('コピーしました'))
+    .catch(()=>toast('長押しでコピーしてください'));
+}
+
 function panel(icon, title, sub, onclick){
   return `<button class="card panel" onclick="${onclick}">
     <i>${icon}</i>
@@ -1254,6 +1316,7 @@ async function passLogin(known, mode){
   try{
     const j = await api('login', { pass, name, mode:mode||'login', credId:(auth||{}).credId||'' }, 'youth');
     auth = { token:j.token, name:j.name, credId:(auth||{}).credId||'' };
+    lgPassCache = pass;          // カレンダー購読URLを作るのに使う
     saveAuth();
     applyState(j.state, 'youth');
     S.me.youth = S.me.marathon = j.name;
