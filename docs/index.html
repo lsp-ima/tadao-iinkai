@@ -43,6 +43,14 @@ header{
 main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:14px;color:var(--muted);letter-spacing:.06em;font-weight:700}
+/* ホームの背景動画（委員会ごと）。読み込めたときだけ body に has-bg が付く */
+.app-bg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-5;
+  opacity:0;transition:opacity .5s;pointer-events:none}
+.bg-scrim{position:fixed;inset:0;z-index:-3;pointer-events:none;display:none}
+body.has-bg .app-bg{opacity:.34}
+body.has-bg .bg-scrim{display:block;
+  background:linear-gradient(180deg,rgba(244,246,249,.72),rgba(244,246,249,.9))}
+
 .phead{display:flex;align-items:center;gap:12px;margin:0 2px 14px}
 .phead h2{margin:0;font-size:17px;color:var(--ink);letter-spacing:.04em}
 
@@ -223,11 +231,12 @@ body[data-skin="rich"]::after{
   content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:linear-gradient(180deg,rgba(4,8,15,.3),rgba(4,8,15,.68))}
 
-/* 委員会ごとの背景動画（media/bg-youth.mp4 / bg-marathon.mp4 を置くと出る） */
-.app-bg{display:none}
-body[data-skin="rich"] .app-bg{
-  display:block;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;
-  z-index:-4;opacity:.5;filter:saturate(1.05)}
+/* 背景動画があるときは、奥の光の層と暗幕は引っ込めて動画を見せる */
+body[data-skin="rich"].has-bg .app-bg{opacity:.5;filter:saturate(1.05)}
+body[data-skin="rich"].has-bg .bg-scrim{
+  background:linear-gradient(180deg,rgba(4,8,15,.3),rgba(4,8,15,.66))}
+body[data-skin="rich"].has-bg::before,
+body[data-skin="rich"].has-bg::after{display:none}
 
 /* ヘッダー：ガラス＋斜めに流れる光 */
 body[data-skin="rich"] header{
@@ -381,9 +390,10 @@ body[data-skin="rich"] #login .pane{
 </head>
 <body data-tab="youth">
 
-<!-- 委員会ごとの背景動画。media/bg-youth.mp4 / bg-marathon.mp4 を置くと
-     「立体・派手」のときだけ後ろで流れる。無ければ何も出ない -->
+<!-- ホーム側の背景動画。media/bg-<委員会>.mp4（横長画面用は -wide）を置くと流れる。
+     無ければ何も出ない -->
 <video id="appBg" class="app-bg" autoplay muted loop playsinline></video>
+<div class="bg-scrim"></div>
 
 <div id="login">
   <!-- 背景動画。画面の向きで縦用・横用を出し分ける（下の起動処理で src を入れる）。
@@ -1055,15 +1065,24 @@ let skin = localStorage.getItem(SKINKEY) || 'simple';
 function applySkin(){ document.body.dataset.skin = skin; setAppBg(); }
 function setSkin(s){ skin = s; localStorage.setItem(SKINKEY, s); applySkin(); render(); }
 
-/** 立体スキンのときだけ、委員会ごとの背景動画を後ろで流す */
+/** 委員会ごとの背景動画をホーム側の後ろで流す（横長の画面では -wide を使う） */
 function setAppBg(){
   const v = document.getElementById('appBg');
   if(!v) return;
-  if(skin !== 'rich'){ v.removeAttribute('src'); v.load(); return; }
-  const src = `media/bg-${tab}.mp4?v=1`;
-  if(v.getAttribute('src') === src) return;
-  v.onerror = () => { v.removeAttribute('src'); };   // ファイルが無ければ何も出さない
+  const wide = window.matchMedia('(min-aspect-ratio: 1/1)').matches;
+  const src = `media/bg-${tab}${wide?'-wide':''}.mp4?v=1`;
+  if(v.dataset.src === src) return;
+  v.dataset.src = src;
+  document.body.classList.remove('has-bg');
+  v.onerror     = () => { document.body.classList.remove('has-bg'); };  // 無ければ何も出さない
+  v.onloadeddata = () => { document.body.classList.add('has-bg'); kickBg(); };
   v.src = src;
+  kickBg();
+}
+/** 端末によって自動再生が止められるので、都度そっと動かす */
+function kickBg(){
+  const v = document.getElementById('appBg');
+  if(!v || !v.getAttribute('src')) return;
   const p = v.play(); if(p) p.catch(()=>{});
 }
 
@@ -1332,12 +1351,12 @@ meBtn.onclick = pickMe;
   if(!v) return;
   // ?v= は差し替えたときに古い動画が残らないようにするための印。動画を替えたら数字を1つ増やす
   const wide = window.matchMedia('(min-aspect-ratio: 1/1)').matches;
-  v.src = (wide ? 'media/login-bg-wide.mp4' : 'media/login-bg.mp4') + '?v=2';
+  v.src = (wide ? 'media/login-bg-wide.mp4' : 'media/login-bg.mp4') + '?v=3';
   const kick = () => { const p = v.play(); if(p) p.catch(()=>{}); };
   kick();
   ['loadeddata','canplay'].forEach(ev => v.addEventListener(ev, kick));
-  document.addEventListener('visibilitychange', kick);
-  document.addEventListener('touchstart', kick, { once:true, passive:true });
+  document.addEventListener('visibilitychange', () => { kick(); kickBg(); });
+  document.addEventListener('touchstart', () => { kick(); kickBg(); }, { once:true, passive:true });
 })();
 
 applySkin();
