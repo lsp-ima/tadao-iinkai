@@ -10,3 +10,6 @@ docs/media/*-source.*
 
 .DS_Store
 *.bak
+
+# 配布物（合言葉が書いてある）
+配布用/
