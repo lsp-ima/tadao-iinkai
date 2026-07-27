@@ -18,7 +18,7 @@ html,body{margin:0;padding:0}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
   background:var(--bg); color:var(--ink); font-size:16px; line-height:1.65;
-  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  padding-bottom:calc(28px + env(safe-area-inset-bottom));
 }
 button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
 button{cursor:pointer;border:none;background:none}
@@ -43,6 +43,18 @@ header{
 main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
 .card h2{margin:0 0 12px;font-size:14px;color:var(--muted);letter-spacing:.06em;font-weight:700}
+.phead{display:flex;align-items:center;gap:12px;margin:0 2px 14px}
+.phead h2{margin:0;font-size:17px;color:var(--ink);letter-spacing:.04em}
+
+/* ホームのパネル（押すとその画面へ） */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+  padding:18px 16px;text-align:left;transition:transform .1s}
+.panel:active{transform:translateY(2px)}
+.panel i{font-style:normal;font-size:26px;line-height:1;margin-bottom:4px}
+.panel .pt{font-weight:800;font-size:16px}
+.panel .ps{font-size:12.5px;color:var(--muted)}
+
 .sec-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px}
 .sec-title h2{margin:0}
 .muted{color:var(--muted)}
@@ -181,111 +193,179 @@ nav button[aria-selected="true"]{color:var(--accent)}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* =========================================================
-   リッチスキン（設定で切り替え）
+   立体スキン（設定で「派手」に切り替えたとき）
+   浮き上がり・押し込み・光沢で奥行きを出す。
    印刷に漏らさないよう @media screen で囲う
    ========================================================= */
 @media screen{
 body[data-skin="rich"]{
-  --bg:#070d18; --card:rgba(255,255,255,.055); --line:rgba(255,255,255,.13);
-  --ink:#e9f0fb; --muted:#8fa2bd; --accent:#4f9dff; --accent-soft:rgba(79,157,255,.18);
-  color:var(--ink);
-  background:
-    radial-gradient(1100px 620px at 8% -12%, rgba(46,105,196,.38), transparent 62%),
-    radial-gradient(900px 520px at 112% 8%, rgba(112,62,196,.28), transparent 62%),
-    #070d18;
-  background-attachment:fixed;
+  --bg:#060a12; --card:rgba(255,255,255,.06); --line:rgba(255,255,255,.14);
+  --ink:#eef4ff; --muted:#93a6c4; --accent:#4f9dff; --accent-soft:rgba(79,157,255,.2);
+  --lift:0 26px 60px rgba(0,0,0,.55), 0 8px 18px rgba(0,0,0,.35);
+  --edge:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.35);
+  color:var(--ink); background:#060a12;
 }
 body[data-skin="rich"][data-tab="marathon"]{
-  --accent:#ff9147; --accent-soft:rgba(255,145,71,.18);
-  background:
-    radial-gradient(1100px 620px at 8% -12%, rgba(196,90,36,.38), transparent 62%),
-    radial-gradient(900px 520px at 112% 8%, rgba(190,52,86,.24), transparent 62%),
-    #0d0a08;
+  --accent:#ff8a3d; --accent-soft:rgba(255,138,61,.22);
 }
 
-/* ヘッダー：斜めに光が流れる */
+/* 奥の層：ゆっくり動く色の塊。これがあるだけで平面に見えなくなる */
+body[data-skin="rich"]::before{
+  content:'';position:fixed;inset:-20%;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 18% 12%, color-mix(in srgb,var(--accent) 55%,transparent), transparent 70%),
+    radial-gradient(42% 34% at 86% 22%, rgba(126,72,220,.5), transparent 72%),
+    radial-gradient(52% 42% at 50% 96%, rgba(20,60,120,.55), transparent 70%);
+  filter:blur(26px);opacity:.95;animation:drift 26s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(3%,2%,0) scale(1.08)}}
+/* 手前の層：うっすら暗く締めて文字を浮かせる */
+body[data-skin="rich"]::after{
+  content:'';position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,8,15,.3),rgba(4,8,15,.68))}
+
+/* 委員会ごとの背景動画（media/bg-youth.mp4 / bg-marathon.mp4 を置くと出る） */
+.app-bg{display:none}
+body[data-skin="rich"] .app-bg{
+  display:block;position:fixed;inset:0;width:100%;height:100%;object-fit:cover;
+  z-index:-4;opacity:.5;filter:saturate(1.05)}
+
+/* ヘッダー：ガラス＋斜めに流れる光 */
 body[data-skin="rich"] header{
   background:linear-gradient(120deg,
-    color-mix(in srgb,var(--accent) 45%,#0a1220),
-    color-mix(in srgb,var(--accent) 12%,#0a1220));
-  box-shadow:0 8px 30px rgba(0,0,0,.5);position:sticky;overflow:hidden}
+    color-mix(in srgb,var(--accent) 42%,rgba(8,14,26,.86)),
+    rgba(8,14,26,.86));
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:0 10px 34px rgba(0,0,0,.55), inset 0 -1px 0 rgba(255,255,255,.12);
+  overflow:hidden}
 body[data-skin="rich"] header::after{
-  content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);
-  animation:sheen 6.5s ease-in-out infinite}
+  content:'';position:absolute;top:0;left:-60%;width:42%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);
+  animation:sheen 7s ease-in-out infinite}
 @keyframes sheen{0%{left:-60%}55%{left:120%}100%{left:120%}}
-body[data-skin="rich"] .tabs button{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)}
+body[data-skin="rich"] .hd-top h1{text-shadow:0 2px 10px rgba(0,0,0,.5)}
+body[data-skin="rich"] .tabs button{
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.72);
+  box-shadow:var(--edge)}
 body[data-skin="rich"] .tabs button[aria-selected="true"]{
-  background:rgba(255,255,255,.96);color:#0d1a2b;box-shadow:0 0 22px var(--accent-soft)}
+  background:linear-gradient(180deg,#fff,#dde7f7);color:#0d1a2b;
+  box-shadow:0 8px 20px rgba(0,0,0,.45), 0 0 26px var(--accent-soft)}
 
-/* カード：すりガラス＋順に浮き上がる */
+/* カード：上辺に光、下に落ち影。順に浮き上がる */
 body[data-skin="rich"] .card{
-  background:var(--card);border:1px solid var(--line);border-radius:18px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  box-shadow:0 1px 0 rgba(255,255,255,.07) inset, 0 18px 40px rgba(0,0,0,.35)}
-body[data-skin="rich"] #view > .card,
-body[data-skin="rich"] #view > .list{animation:riseIn .5s cubic-bezier(.2,.8,.2,1) both}
-body[data-skin="rich"] #view > *:nth-child(2){animation-delay:.06s}
-body[data-skin="rich"] #view > *:nth-child(3){animation-delay:.12s}
-body[data-skin="rich"] #view > *:nth-child(4){animation-delay:.18s}
-@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.035));
+  border:1px solid var(--line);border-radius:20px;
+  backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);
+  box-shadow:var(--lift), var(--edge)}
+body[data-skin="rich"] .card h2{
+  color:#a9bcd8;letter-spacing:.12em;position:relative;padding-left:12px}
+body[data-skin="rich"] .card h2::before{
+  content:'';position:absolute;left:0;top:1px;bottom:1px;width:3px;border-radius:3px;
+  background:linear-gradient(180deg,var(--accent),transparent);
+  box-shadow:0 0 12px var(--accent-soft)}
+body[data-skin="rich"] #view > *{animation:riseIn .55s cubic-bezier(.2,.9,.25,1) both}
+body[data-skin="rich"] #view > *:nth-child(2){animation-delay:.07s}
+body[data-skin="rich"] #view > *:nth-child(3){animation-delay:.14s}
+body[data-skin="rich"] #view > *:nth-child(4){animation-delay:.21s}
+body[data-skin="rich"] #view > *:nth-child(n+5){animation-delay:.28s}
+@keyframes riseIn{from{opacity:0;transform:translate3d(0,18px,0) scale(.985)}to{opacity:1;transform:none}}
 
-/* 次回開催：光る */
+/* 次回開催：いちばん高く浮かせる */
 body[data-skin="rich"] .next{
-  background:linear-gradient(150deg,
-    color-mix(in srgb,var(--accent) 62%,#0b1526),
-    color-mix(in srgb,var(--accent) 18%,#080f1c));
-  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);
-  box-shadow:0 0 0 1px rgba(255,255,255,.05) inset, 0 22px 50px color-mix(in srgb,var(--accent) 22%,transparent)}
+  position:relative;overflow:hidden;border:1px solid color-mix(in srgb,var(--accent) 50%,transparent);
+  background:
+    radial-gradient(120% 90% at 20% -20%, color-mix(in srgb,var(--accent) 75%,transparent), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb,var(--accent) 40%,#0b1526), #070e1b);
+  box-shadow:0 34px 70px rgba(0,0,0,.6), 0 0 40px color-mix(in srgb,var(--accent) 22%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.3)}
+body[data-skin="rich"] .next::after{
+  content:'';position:absolute;right:-30%;top:-60%;width:70%;height:180%;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,255,255,.16),transparent);transform:rotate(18deg)}
+body[data-skin="rich"] .next h2{color:rgba(255,255,255,.7)}
+body[data-skin="rich"] .next h2::before{background:rgba(255,255,255,.55);box-shadow:none}
 body[data-skin="rich"] .next .date{
-  text-shadow:0 0 26px color-mix(in srgb,var(--accent) 70%,transparent)}
+  text-shadow:0 3px 0 rgba(0,0,0,.25), 0 0 34px color-mix(in srgb,var(--accent) 80%,transparent)}
 body[data-skin="rich"] .next .count{
-  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
-  animation:pulse 2.6s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.22)}50%{box-shadow:0 0 0 9px rgba(255,255,255,0)}}
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);
+  box-shadow:var(--edge);animation:pulse 2.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:var(--edge),0 0 0 0 rgba(255,255,255,.22)}
+                 50%{box-shadow:var(--edge),0 0 0 10px rgba(255,255,255,0)}}
 
-/* 部品 */
-body[data-skin="rich"] .item{background:rgba(255,255,255,.045)}
-body[data-skin="rich"] .item:active{background:rgba(255,255,255,.09)}
-body[data-skin="rich"] .list{border-color:var(--line);background:var(--line)}
+/* ボタン：面が立って、押すと沈む */
 body[data-skin="rich"] .btn{
-  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#7d4bff));
-  box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 28%,transparent)}
-body[data-skin="rich"] .btn.ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
-body[data-skin="rich"] .btn.sub{background:rgba(255,255,255,.09);color:var(--ink)}
-body[data-skin="rich"] .btn.danger{background:rgba(255,90,80,.12);color:#ff9d95;border-color:rgba(255,120,110,.35)}
-body[data-skin="rich"] .iconbtn{background:rgba(255,255,255,.09);color:var(--muted)}
+  background:linear-gradient(180deg,
+    color-mix(in srgb,var(--accent) 92%,#fff),
+    color-mix(in srgb,var(--accent) 60%,#3b2bb8));
+  box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 32%,transparent),
+             0 2px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .08s, box-shadow .08s}
+body[data-skin="rich"] .btn:active{
+  transform:translateY(2px);
+  box-shadow:0 4px 12px rgba(0,0,0,.4), inset 0 2px 6px rgba(0,0,0,.35)}
+body[data-skin="rich"] .btn.ghost,
+body[data-skin="rich"] .btn.sub{
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.05));
+  color:var(--ink);border-color:var(--line);
+  box-shadow:0 8px 18px rgba(0,0,0,.35), var(--edge)}
+body[data-skin="rich"] .btn.danger{
+  background:linear-gradient(180deg,rgba(255,90,80,.22),rgba(255,90,80,.1));
+  color:#ffb2ab;border-color:rgba(255,120,110,.4)}
+body[data-skin="rich"] .ans button{
+  background:rgba(255,255,255,.12);box-shadow:var(--edge);transition:transform .08s}
+body[data-skin="rich"] .ans button:active{transform:translateY(2px)}
+body[data-skin="rich"] .ans button[aria-pressed="true"]{
+  background:linear-gradient(180deg,#fff,#e3ecfb);color:#12304f;
+  box-shadow:0 10px 22px rgba(0,0,0,.45), inset 0 1px 0 #fff}
+
+/* 一覧・入力 */
+body[data-skin="rich"] .list{
+  background:var(--line);border-color:var(--line);border-radius:16px;
+  box-shadow:var(--lift)}
+body[data-skin="rich"] .item{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03))}
+body[data-skin="rich"] .item:active{background:rgba(255,255,255,.12)}
+body[data-skin="rich"] .iconbtn{background:rgba(255,255,255,.1);color:var(--muted);box-shadow:var(--edge)}
 body[data-skin="rich"] input,body[data-skin="rich"] select,body[data-skin="rich"] textarea{
-  background:rgba(255,255,255,.07);border-color:var(--line);color:var(--ink)}
-body[data-skin="rich"] .blk{background:rgba(255,255,255,.035);border-color:var(--line)}
-body[data-skin="rich"] .pill.non{background:rgba(255,255,255,.09);color:var(--muted)}
-body[data-skin="rich"] nav{
-  background:rgba(8,14,24,.82);border-top:1px solid var(--line);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-body[data-skin="rich"] nav button[aria-selected="true"]{
-  color:var(--accent);text-shadow:0 0 16px var(--accent-soft)}
-body[data-skin="rich"] .modal .sheet{
-  background:linear-gradient(180deg,#0d1727,#070d18);border-top:1px solid var(--line)}
+  background:rgba(6,12,22,.55);border-color:var(--line);color:var(--ink);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.45)}
+body[data-skin="rich"] ::placeholder{color:#7f92ad}
+body[data-skin="rich"] .blk{background:rgba(255,255,255,.04);border-color:var(--line)}
+body[data-skin="rich"] .pill.non{background:rgba(255,255,255,.1);color:var(--muted)}
+body[data-skin="rich"] .tally b{text-shadow:0 0 18px currentColor}
 body[data-skin="rich"] .empty{color:var(--muted)}
 
-/* 入口も派手に */
-body[data-skin="rich"] #login .box{animation:riseIn .8s cubic-bezier(.2,.8,.2,1) both}
-body[data-skin="rich"] #login h1{
-  text-shadow:0 0 30px rgba(120,180,255,.45);letter-spacing:.1em}
-body[data-skin="rich"] #login .mark{
-  box-shadow:0 0 40px rgba(120,180,255,.35);border-color:rgba(160,200,255,.45);
-  animation:pulse 3.4s ease-in-out infinite}
-body[data-skin="rich"] #login .pane{
-  border-color:rgba(160,200,255,.3);box-shadow:0 24px 60px rgba(0,0,0,.5)}
-body[data-skin="rich"] #login .glow{animation-duration:11s}
-}
+/* 下のナビ：浮いた棒にする */
+body[data-skin="rich"] nav{
+  left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));
+  border:1px solid var(--line);border-radius:20px;
+  background:rgba(10,16,28,.72);
+  backdrop-filter:blur(20px) saturate(1.3);-webkit-backdrop-filter:blur(20px) saturate(1.3);
+  box-shadow:0 18px 40px rgba(0,0,0,.6), var(--edge);
+  padding:8px 4px}
+body[data-skin="rich"] nav button[aria-selected="true"]{
+  color:var(--accent);text-shadow:0 0 18px var(--accent-soft)}
+body[data-skin="rich"] nav button[aria-selected="true"] i{transform:translateY(-2px);transition:.2s}
 
+body[data-skin="rich"] .modal .sheet{
+  background:linear-gradient(180deg,#101c30,#070d18);
+  border:1px solid var(--line);border-bottom:none;
+  box-shadow:0 -20px 60px rgba(0,0,0,.65)}
+
+/* 入口も同じ質感で */
+body[data-skin="rich"] #login .box{animation:riseIn .8s cubic-bezier(.2,.9,.25,1) both}
+body[data-skin="rich"] #login h1{text-shadow:0 2px 14px rgba(0,0,0,.7),0 0 34px rgba(120,180,255,.4)}
+body[data-skin="rich"] #login .mark{
+  box-shadow:0 14px 30px rgba(0,0,0,.5), 0 0 44px rgba(120,180,255,.35), var(--edge);
+  border-color:rgba(170,205,255,.45)}
+body[data-skin="rich"] #login .pane{
+  border-color:rgba(170,205,255,.28);
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));
+  box-shadow:0 30px 70px rgba(0,0,0,.6), var(--edge)}
+}
 /* ---------- print (PDF) ---------- */
 #print-root{display:none}
 @media print{
   @page{size:A4;margin:16mm 15mm}
   body{background:#fff;padding:0}
-  header,nav,main,.modal{display:none !important}
+  header,nav,main,.modal,#login,#appBg,#toast{display:none !important}
   #print-root{display:block;font-size:11.5pt;line-height:1.85;color:#000}
   #print-root h1{font-size:15pt;text-align:center;margin:0 0 4mm;font-weight:700;letter-spacing:.02em}
   #print-root .p-meta{text-align:center;font-size:10.5pt;border-bottom:1.2pt solid #000;padding-bottom:2.5mm;margin-bottom:6mm}
@@ -300,6 +380,10 @@ body[data-skin="rich"] #login .glow{animation-duration:11s}
 </style>
 </head>
 <body data-tab="youth">
+
+<!-- 委員会ごとの背景動画。media/bg-youth.mp4 / bg-marathon.mp4 を置くと
+     「立体・派手」のときだけ後ろで流れる。無ければ何も出ない -->
+<video id="appBg" class="app-bg" autoplay muted loop playsinline></video>
 
 <div id="login">
   <!-- 背景動画。画面の向きで縦用・横用を出し分ける（下の起動処理で src を入れる）。
@@ -334,14 +418,6 @@ body[data-skin="rich"] #login .glow{animation-duration:11s}
 </header>
 
 <main id="view"></main>
-
-<nav role="tablist">
-  <button aria-selected="true"  onclick="setView('home')"    id="nvhome"><i>🏠</i>ホーム</button>
-  <button aria-selected="false" onclick="setView('attend')"  id="nvattend"><i>✋</i>出欠</button>
-  <button aria-selected="false" onclick="setView('minutes')" id="nvminutes"><i>📄</i>議事録</button>
-  <button aria-selected="false" onclick="setView('tasks')"   id="nvtasks"><i>✅</i>進捗</button>
-  <button aria-selected="false" onclick="setView('settings')" id="nvsettings"><i>⚙️</i>設定</button>
-</nav>
 
 <div class="modal" id="modal">
   <div class="bd" onclick="closeModal()"></div>
@@ -492,13 +568,20 @@ function setTab(t){
   tab=t; document.body.dataset.tab=t;
   tabYouth.setAttribute('aria-selected', t==='youth');
   tabMara.setAttribute('aria-selected', t==='marathon');
+  setAppBg();
   render();
 }
 function setView(v){
   view=v;
-  ['home','attend','minutes','tasks','settings'].forEach(k=>
-    document.getElementById('nv'+k).setAttribute('aria-selected', k===v));
   window.scrollTo(0,0); render();
+}
+
+/** ホーム以外の画面の頭に付ける、戻る導線 */
+function pageHead(title){
+  return `<div class="phead">
+    <button class="btn sub sm" onclick="setView('home')">← ホーム</button>
+    <h2>${esc(title)}</h2>
+  </div>`;
 }
 
 /* ---------- モーダル ---------- */
@@ -538,7 +621,6 @@ function renderHome(){
 
   if(m){
     const dl = daysLeft(m.date);
-    const t = tally(m);
     const my = ME() ? (m.attend||{})[ME()] : null;
     h += `<div class="card next">
       <h2>次回開催</h2>
@@ -550,16 +632,6 @@ function renderHome(){
         ${Object.entries(STATUS).map(([k,v])=>
           `<button aria-pressed="${my===k}" onclick="answer('${m.id}','${k}')">${v}</button>`).join('')}
       </div>` : `<div class="ans"><button onclick="pickMe()">まず自分の名前を選ぶ</button></div>`}
-    </div>
-    <div class="card">
-      <h2>出欠の集まり具合</h2>
-      <div class="tally">
-        <span>出席<b class="pill ok" style="background:none;padding:0">${t.present}</b></span>
-        <span>欠席<b class="pill ng" style="background:none;padding:0">${t.absent}</b></span>
-        <span>未定<b class="pill maybe" style="background:none;padding:0">${t.unknown}</b></span>
-        <span>未回答<b>${t.none}</b></span>
-      </div>
-      <button class="btn ghost wide sm" onclick="setView('attend')">出欠の一覧を見る</button>
     </div>`;
   } else {
     h += `<div class="card">
@@ -569,31 +641,27 @@ function renderHome(){
     </div>`;
   }
 
-  const open = C().tasks.filter(t=>t.st!=='完了');
-  h += `<div class="card">
-    <div class="sec-title"><h2>進捗（未完了 ${open.length}件）</h2>
-      <button class="btn sub sm" onclick="setView('tasks')">すべて</button></div>
-    ${open.length ? `<div class="list">${open.slice(0,4).map(t=>`
-      <button class="item" onclick="editTask('${t.id}')">
-        <span class="pill ${t.st==='進行中'?'line':'non'}">${t.st}</span>
-        <span class="grow"><span class="t">${esc(t.title)}</span>
-          <span class="s">${t.who?esc(t.who)+'　':''}${t.due?'期限 '+fmtDate(t.due,{short:true}):'期限なし'}</span></span>
-        <span class="chev">›</span></button>`).join('')}</div>`
-      : `<div class="empty">未完了の項目はありません</div>`}
-  </div>`;
+  // ここから先はパネル。押すとその画面へ飛ぶ
+  const t = m ? tally(m) : {present:0,absent:0,unknown:0,none:0};
+  const open = C().tasks.filter(x=>x.st!=='完了').length;
+  const withMinutes = C().meetings.filter(x=>x.sections && x.sections.length).length;
+  const isAdmin = ME() && ME()===C().admin;
 
-  const past = pastMeetings().filter(x=>x.sections && x.sections.length);
-  h += `<div class="card">
-    <div class="sec-title"><h2>最近の議事録</h2>
-      <button class="btn sub sm" onclick="setView('minutes')">すべて</button></div>
-    ${past.length ? `<div class="list">${past.slice(0,3).map(x=>`
-      <button class="item" onclick="showMinutes('${x.id}')">
-        <span class="grow"><span class="t">第${x.no}回${esc(C().unit)}</span>
-        <span class="s">${fmtDate(x.date)}</span></span><span class="chev">›</span></button>`).join('')}</div>`
-      : `<div class="empty">まだ議事録がありません</div>`}
+  h += `<div class="panels">
+    ${panel('✋','出欠', m ? `出席 ${t.present}／未回答 ${t.none}` : '会議が未登録', "setView('attend')")}
+    ${panel('📄','議事録', withMinutes ? `${withMinutes}回ぶん` : 'まだありません', "setView('minutes')")}
+    ${panel('✅','進捗', open ? `未完了 ${open}件` : '未完了なし', "setView('tasks')")}
+    ${isAdmin ? panel('⚙️','設定', '合言葉・メンバー', "setView('settings')") : ''}
   </div>`;
 
   view_(h);
+}
+function panel(icon, title, sub, onclick){
+  return `<button class="card panel" onclick="${onclick}">
+    <i>${icon}</i>
+    <span class="pt">${esc(title)}</span>
+    <span class="ps">${esc(sub)}</span>
+  </button>`;
 }
 function view_(h){ document.getElementById('view').innerHTML = h; }
 
@@ -622,7 +690,7 @@ function renderAttend(){
   const cur = ms.find(m=>m.id===attendPick) || nextMeeting() || ms[ms.length-1];
   attendPick = cur.id;
   const t = tally(cur);
-  view_(`
+  view_(pageHead('出欠') + `
     <div class="card">
       <label class="f"><span>会議を選ぶ</span>
         <select onchange="attendPick=this.value;render()">
@@ -660,9 +728,12 @@ function cycle(mid, name){
 /* ---------- 議事録 ---------- */
 function renderMinutes(){
   const ms = sortedMeetings().reverse();
-  view_(`
-    <div class="sec-title"><h2>議事録・会議一覧</h2>
-      <button class="btn sm" onclick="editMeeting()">＋ 会議を追加</button></div>
+  view_(pageHead('議事録') + `
+    <div class="card">
+      <button class="btn wide" onclick="editMeeting()">＋ 新しい会議を追加</button>
+      <p class="muted small" style="margin:10px 2px 0">
+        先に日付と場所を登録し、そのあと下の一覧から開いて議事録を書きます。</p>
+    </div>
     ${ms.length ? `<div class="list">${ms.map(m=>{
       const has = m.sections && m.sections.length;
       return `<button class="item" onclick="showMinutes('${m.id}')">
@@ -706,7 +777,7 @@ function showMinutes(id){
             📎 ${esc(m.pdf.name)}</button>
           <button class="btn danger" onclick="removePdf('${m.id}')">🗑</button>
         </div>
-        <p class="muted small" style="margin:9px 2px 0">Driveの「青少健議事録」フォルダに入っています。</p>`
+        `
       : `<button class="btn sub wide" onclick="attachPdf('${m.id}')">📎 PDFを添付する</button>
         <p class="muted small" style="margin:9px 2px 0">前に作った議事録のPDFを、この回に紐づけて残せます。</p>`}
     </div>
@@ -865,9 +936,8 @@ function delMeeting(id){
 /* ---------- 進捗 ---------- */
 function renderTasks(){
   const g = st => C().tasks.filter(t=>t.st===st);
-  view_(`
-    <div class="sec-title"><h2>進捗状況</h2>
-      <button class="btn sm" onclick="editTask()">＋ 追加</button></div>
+  view_(pageHead('進捗') + `
+    <div class="card"><button class="btn wide" onclick="editTask()">＋ 項目を追加</button></div>
     ${TASK_ST.map(st=>{
       const arr=g(st);
       return `<div class="card">
@@ -929,12 +999,12 @@ function delTask(id){
 
 /* ---------- 設定 ---------- */
 function renderSettings(){
-  view_(`
+  view_(pageHead('設定') + `
     <div class="card">
       <h2>見た目</h2>
       <div class="row">
         <button class="btn ${skin==='simple'?'':'sub'}" style="flex:1" onclick="setSkin('simple')">シンプル</button>
-        <button class="btn ${skin==='rich'?'':'sub'}" style="flex:1" onclick="setSkin('rich')">くっきり派手</button>
+        <button class="btn ${skin==='rich'?'':'sub'}" style="flex:1" onclick="setSkin('rich')">立体・派手</button>
       </div>
       <p class="muted small" style="margin:10px 2px 0">この端末だけの設定です。いつでも戻せます。</p>
     </div>
@@ -982,8 +1052,20 @@ function changePass(){
 }
 
 let skin = localStorage.getItem(SKINKEY) || 'simple';
-function applySkin(){ document.body.dataset.skin = skin; }
+function applySkin(){ document.body.dataset.skin = skin; setAppBg(); }
 function setSkin(s){ skin = s; localStorage.setItem(SKINKEY, s); applySkin(); render(); }
+
+/** 立体スキンのときだけ、委員会ごとの背景動画を後ろで流す */
+function setAppBg(){
+  const v = document.getElementById('appBg');
+  if(!v) return;
+  if(skin !== 'rich'){ v.removeAttribute('src'); v.load(); return; }
+  const src = `media/bg-${tab}.mp4?v=1`;
+  if(v.getAttribute('src') === src) return;
+  v.onerror = () => { v.removeAttribute('src'); };   // ファイルが無ければ何も出さない
+  v.src = src;
+  const p = v.play(); if(p) p.catch(()=>{});
+}
 
 function pickMe(){
   openModal('自分の名前を選ぶ', `<div class="card"><div class="list">
@@ -1088,8 +1170,7 @@ function toast(msg){
 const canFace = !!(window.PublicKeyCredential && navigator.credentials);
 
 let lgMode = 'login';      // 'login'（登録済みの人）| 'signup'（はじめての人）
-let lgPassCache = '';      // 合言葉を通したあと、名前を選ぶまで持っておく
-let lgRoster = null;       // 登録済みの名前一覧
+let lgPassCache = '';      // Face IDで入るときなどに使う合言葉の控え
 
 function lgSet(m){ lgMode = m; lgMsg.textContent=''; lgRender(); }
 
@@ -1114,20 +1195,12 @@ function lgRender(){
       <input type="text" id="lgName" placeholder="あなたの名前（例：今村）" autocomplete="off">
       <button class="btn" onclick="passLogin(null,'signup')">この名前で登録する</button>`;
   }
-  // 登録済みの人：合言葉 → 名前をタップ
-  else if(lgRoster){
-    lgBody.innerHTML = segHtml() + `
-      <p class="hello" style="margin-bottom:10px">自分の名前をえらんでください</p>
-      ${lgRoster.length
-        ? lgRoster.map(n => `<button class="btn line" style="margin-bottom:8px"
-            onclick="passLogin(${JSON.stringify(n).replace(/"/g,'&quot;')},'login')">${esc(n)}</button>`).join('')
-        : '<p class="hello">まだ誰も登録されていません</p>'}
-      <button class="link" onclick="lgRoster=null;lgRender()">合言葉を入れ直す</button>`;
-  }
+  // 登録済みの人：合言葉＋名前
   else{
     lgBody.innerHTML = segHtml() + `
       <input type="password" id="lgPass" placeholder="合言葉" autocomplete="off">
-      <button class="btn" onclick="askRoster()">つぎへ</button>`;
+      <input type="text" id="lgName" placeholder="あなたの名前（例：今村）" autocomplete="off">
+      <button class="btn" onclick="passLogin(null,'login')">ひらく</button>`;
   }
 
   lgNote.innerHTML = DEMO
@@ -1140,22 +1213,7 @@ function segHtml(){
     <button aria-pressed="${lgMode==='signup'}" onclick="lgSet('signup')">はじめての方</button>
   </div>`;
 }
-function lgForget(){ auth=null; lgRoster=null; lgPassCache=''; saveAuth(); lgRender(); }
-
-/** 合言葉だけ先に照合して、登録済みの名前を出す */
-async function askRoster(){
-  const pass = ((document.getElementById('lgPass')||{}).value||'').trim();
-  if(!pass){ lgMsg.textContent = '合言葉を入れてください'; return; }
-  if(DEMO){ lgPassCache = pass; lgRoster = C().members.slice(); return lgRender(); }
-  lgMsg.textContent = '確認しています…';
-  try{
-    const j = await api('roster', { pass }, 'youth');
-    lgPassCache = pass;
-    lgRoster = j.members || [];
-    lgRender();
-    if(!lgRoster.length) lgMsg.textContent = 'まだ誰も登録されていません。「はじめての方」から登録してください。';
-  }catch(e){ lgMsg.textContent = e.message; }
-}
+function lgForget(){ auth=null; lgPassCache=''; saveAuth(); lgRender(); }
 
 async function passLogin(known, mode){
   const typed = ((document.getElementById('lgPass')||{}).value || '').trim();
