@@ -1272,8 +1272,9 @@ meBtn.onclick = pickMe;
 (function(){
   const v = document.getElementById('lgVideo');
   if(!v) return;
+  // ?v= は差し替えたときに古い動画が残らないようにするための印。動画を替えたら数字を1つ増やす
   const wide = window.matchMedia('(min-aspect-ratio: 1/1)').matches;
-  v.src = wide ? 'media/login-bg-wide.mp4' : 'media/login-bg.mp4';
+  v.src = (wide ? 'media/login-bg-wide.mp4' : 'media/login-bg.mp4') + '?v=2';
   const kick = () => { const p = v.play(); if(p) p.catch(()=>{}); };
   kick();
   ['loadeddata','canplay'].forEach(ev => v.addEventListener(ev, kick));
