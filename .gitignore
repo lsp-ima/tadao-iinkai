@@ -1,0 +1,12 @@
+# 公開しないもの（合言葉や内部の手順が書いてある）
+gas/
+素材/
+手順書.md
+# ルートの開発メモだけ除外（docs/README.md は公開する）
+/README.md
+
+# 重い元素材（動画は書き出し済みのmp4だけで足りる）
+docs/media/login-bg-source.png
+
+.DS_Store
+*.bak

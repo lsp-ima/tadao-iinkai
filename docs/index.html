@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12304f">
+<title>忠生 委員会ボード</title>
+<style>
+:root{
+  --bg:#f4f6f9; --card:#fff; --line:#e3e8ef; --ink:#1c2530; --muted:#6b7785;
+  --accent:#1e5aa8; --accent-soft:#e8f0fb;
+  --ok:#1f8b53; --ng:#c0392b; --maybe:#c98a00;
+  --radius:14px; --shadow:0 1px 2px rgba(16,32,55,.06),0 6px 20px rgba(16,32,55,.06);
+}
+body[data-tab="marathon"]{ --accent:#c4571c; --accent-soft:#fdeee4; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",YuGothic,"Noto Sans JP",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:16px; line-height:1.65;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:none;background:none}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:30;background:var(--accent);color:#fff;
+  padding:env(safe-area-inset-top) 0 0;box-shadow:0 2px 10px rgba(16,32,55,.14);
+  transition:background .2s;
+}
+.hd-top{display:flex;align-items:center;gap:10px;padding:10px 14px 4px}
+.hd-top h1{font-size:15px;margin:0;font-weight:700;letter-spacing:.02em;flex:1}
+.hd-me{font-size:12px;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#fff}
+.tabs{display:flex;gap:6px;padding:0 10px 10px}
+.tabs button{
+  flex:1;padding:9px 6px;border-radius:10px;font-size:13.5px;font-weight:700;
+  background:rgba(255,255,255,.16);color:rgba(255,255,255,.85);line-height:1.3;
+}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--accent)}
+
+/* ---------- layout ---------- */
+main{max-width:760px;margin:0 auto;padding:14px 14px 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 12px;font-size:14px;color:var(--muted);letter-spacing:.06em;font-weight:700}
+.sec-title{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px}
+.sec-title h2{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 16px;border-radius:11px;font-weight:700;font-size:14.5px;
+  background:var(--accent);color:#fff;border:1px solid transparent}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--accent);border-color:var(--accent)}
+.btn.sub{background:#eef1f6;color:var(--ink)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn.wide{width:100%}
+.btn.danger{background:#fff;color:var(--ng);border-color:#f0c6c0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ---------- next meeting ---------- */
+.next{background:linear-gradient(160deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#000));color:#fff;border:none}
+.next h2{color:rgba(255,255,255,.75)}
+.next .date{font-size:26px;font-weight:800;letter-spacing:.01em;line-height:1.3}
+.next .meta{font-size:14px;color:rgba(255,255,255,.9);margin-top:4px}
+.next .count{display:inline-block;margin-top:10px;background:rgba(255,255,255,.2);
+  padding:5px 12px;border-radius:999px;font-size:13px;font-weight:700}
+.ans{display:flex;gap:8px;margin-top:14px}
+.ans button{flex:1;padding:12px 4px;border-radius:11px;background:rgba(255,255,255,.16);
+  color:#fff;font-weight:700;font-size:14px;border:1.5px solid rgba(255,255,255,.3)}
+.ans button[aria-pressed="true"]{background:#fff;color:var(--accent);border-color:#fff}
+
+/* ---------- lists ---------- */
+.list{display:flex;flex-direction:column;gap:1px;background:var(--line);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.item{background:#fff;padding:13px 14px;display:flex;align-items:center;gap:12px;text-align:left;width:100%}
+.item:active{background:#f7f9fc}
+.item .grow{flex:1;min-width:0}
+.item .t{display:block;font-weight:700;font-size:15px}
+.item .s{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.chev{color:#c3cbd6;font-size:18px}
+
+.mi{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)}
+.mi:first-of-type{border-top:none;padding-top:2px}
+.mi .mt{flex:1;min-width:0}
+.mi .mt::before{content:'・';color:var(--muted)}
+.mi .pick{flex:none;align-self:center;white-space:nowrap}
+
+.pill{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill.ok{background:#e7f5ed;color:var(--ok)} .pill.ng{background:#fdeceb;color:var(--ng)}
+.pill.maybe{background:#fdf4e0;color:var(--maybe)} .pill.non{background:#eef1f5;color:var(--muted)}
+.pill.line{background:var(--accent-soft);color:var(--accent)}
+
+.tally{display:flex;gap:14px;font-size:13px;font-weight:700;margin-bottom:10px;flex-wrap:wrap}
+.tally span{color:var(--muted);font-weight:600}
+.tally b{font-size:17px;margin-left:3px}
+
+/* ---------- form ---------- */
+label.f{display:block;margin-bottom:12px}
+label.f > span{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
+input[type=text],input[type=password],input[type=date],input[type=time],input[type=number],select,textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--ink)}     /* color を明示しないと #login の白文字を継いで見えなくなる */
+::placeholder{color:#9aa6b4;opacity:1}
+textarea{resize:vertical;min-height:96px;line-height:1.7}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ---------- minutes editor ---------- */
+.blk{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fbfcfe}
+.blk .bh{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.blk .bh input{font-weight:700}
+.iconbtn{width:34px;height:34px;border-radius:9px;background:#eef1f6;color:var(--muted);font-size:15px;flex:none;
+  display:inline-flex;align-items:center;justify-content:center}
+.iconbtn.x{color:var(--ng)}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:60;display:none}
+.modal.on{display:block}
+.modal .bd{position:absolute;inset:0;background:rgba(14,24,38,.45)}
+.modal .sheet{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;
+  background:var(--bg);border-radius:18px 18px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom));
+  max-width:760px;margin:0 auto}
+.sheet-hd{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sheet-hd h3{flex:1;margin:0;font-size:17px}
+
+/* ---------- bottom nav ---------- */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);
+  backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  display:flex;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;padding:6px 2px;border-radius:10px;color:var(--muted);font-size:11px;font-weight:700;
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button i{font-style:normal;font-size:19px;line-height:1}
+nav button[aria-selected="true"]{color:var(--accent)}
+
+/* ---------- ログイン（入口。デザインは後で詰める） ---------- */
+#login{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;
+  padding:22px;color:#fff;overflow:hidden;
+  background:radial-gradient(120% 85% at 50% 0%,#1d3f6b,#0d1b2c 58%,#070d16)}
+#login.hide{display:none}
+#login .login-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  animation:kenburns 24s ease-in-out infinite alternate}
+@keyframes kenburns{from{transform:scale(1.06) translate(1%,1%)}to{transform:scale(1.16) translate(-2%,-2%)}}
+#login .login-veil{position:absolute;inset:0;
+  background:linear-gradient(175deg,rgba(10,20,34,.72),rgba(12,26,44,.5) 45%,rgba(6,12,21,.9))}
+#login .glow{position:absolute;width:540px;height:540px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(96,158,240,.26),transparent 65%);
+  animation:floaty 16s ease-in-out infinite alternate}
+@keyframes floaty{from{transform:translate(-32%,-28%)}to{transform:translate(22%,12%)}}
+#login .box{position:relative;width:100%;max-width:360px;text-align:center}
+#login .mark{width:66px;height:66px;margin:0 auto 16px;border-radius:20px;font-size:28px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.24);
+  display:flex;align-items:center;justify-content:center}
+#login h1{font-size:21px;margin:0 0 6px;letter-spacing:.06em;font-weight:700}
+#login .sub{font-size:11px;color:rgba(255,255,255,.55);letter-spacing:.32em;margin:0 0 22px}
+#login .pane{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+  border-radius:18px;padding:18px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#login .seg{display:flex;gap:6px;margin-bottom:16px}
+#login .seg button{flex:1;padding:9px 4px;border-radius:10px;font-size:12.5px;font-weight:700;
+  line-height:1.35;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75)}
+#login .seg button[aria-pressed="true"]{background:#fff;color:#12304f}
+#login .hello{font-size:14px;margin:2px 0 14px;color:rgba(255,255,255,.85)}
+#login .hello b{font-size:17px}
+#login input{text-align:center;margin-bottom:10px}
+#login .btn{width:100%;background:#fff;color:#12304f;margin-top:4px}
+#login .btn.line{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+#login .msg{min-height:18px;font-size:12.5px;color:#ffb9ad;margin-top:10px;line-height:1.5}
+#login .link{display:block;width:100%;margin-top:14px;font-size:12.5px;
+  color:rgba(255,255,255,.6);text-decoration:underline}
+#login .note{font-size:11.5px;color:rgba(255,255,255,.45);margin-top:14px;line-height:1.6}
+
+#toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(10px);z-index:80;
+  background:#22303f;color:#fff;font-size:13px;padding:10px 16px;border-radius:999px;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;transition:.2s;pointer-events:none;max-width:90vw}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* =========================================================
+   リッチスキン（設定で切り替え）
+   印刷に漏らさないよう @media screen で囲う
+   ========================================================= */
+@media screen{
+body[data-skin="rich"]{
+  --bg:#070d18; --card:rgba(255,255,255,.055); --line:rgba(255,255,255,.13);
+  --ink:#e9f0fb; --muted:#8fa2bd; --accent:#4f9dff; --accent-soft:rgba(79,157,255,.18);
+  color:var(--ink);
+  background:
+    radial-gradient(1100px 620px at 8% -12%, rgba(46,105,196,.38), transparent 62%),
+    radial-gradient(900px 520px at 112% 8%, rgba(112,62,196,.28), transparent 62%),
+    #070d18;
+  background-attachment:fixed;
+}
+body[data-skin="rich"][data-tab="marathon"]{
+  --accent:#ff9147; --accent-soft:rgba(255,145,71,.18);
+  background:
+    radial-gradient(1100px 620px at 8% -12%, rgba(196,90,36,.38), transparent 62%),
+    radial-gradient(900px 520px at 112% 8%, rgba(190,52,86,.24), transparent 62%),
+    #0d0a08;
+}
+
+/* ヘッダー：斜めに光が流れる */
+body[data-skin="rich"] header{
+  background:linear-gradient(120deg,
+    color-mix(in srgb,var(--accent) 45%,#0a1220),
+    color-mix(in srgb,var(--accent) 12%,#0a1220));
+  box-shadow:0 8px 30px rgba(0,0,0,.5);position:sticky;overflow:hidden}
+body[data-skin="rich"] header::after{
+  content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.16),transparent);
+  animation:sheen 6.5s ease-in-out infinite}
+@keyframes sheen{0%{left:-60%}55%{left:120%}100%{left:120%}}
+body[data-skin="rich"] .tabs button{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)}
+body[data-skin="rich"] .tabs button[aria-selected="true"]{
+  background:rgba(255,255,255,.96);color:#0d1a2b;box-shadow:0 0 22px var(--accent-soft)}
+
+/* カード：すりガラス＋順に浮き上がる */
+body[data-skin="rich"] .card{
+  background:var(--card);border:1px solid var(--line);border-radius:18px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 rgba(255,255,255,.07) inset, 0 18px 40px rgba(0,0,0,.35)}
+body[data-skin="rich"] #view > .card,
+body[data-skin="rich"] #view > .list{animation:riseIn .5s cubic-bezier(.2,.8,.2,1) both}
+body[data-skin="rich"] #view > *:nth-child(2){animation-delay:.06s}
+body[data-skin="rich"] #view > *:nth-child(3){animation-delay:.12s}
+body[data-skin="rich"] #view > *:nth-child(4){animation-delay:.18s}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* 次回開催：光る */
+body[data-skin="rich"] .next{
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--accent) 62%,#0b1526),
+    color-mix(in srgb,var(--accent) 18%,#080f1c));
+  border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);
+  box-shadow:0 0 0 1px rgba(255,255,255,.05) inset, 0 22px 50px color-mix(in srgb,var(--accent) 22%,transparent)}
+body[data-skin="rich"] .next .date{
+  text-shadow:0 0 26px color-mix(in srgb,var(--accent) 70%,transparent)}
+body[data-skin="rich"] .next .count{
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+  animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.22)}50%{box-shadow:0 0 0 9px rgba(255,255,255,0)}}
+
+/* 部品 */
+body[data-skin="rich"] .item{background:rgba(255,255,255,.045)}
+body[data-skin="rich"] .item:active{background:rgba(255,255,255,.09)}
+body[data-skin="rich"] .list{border-color:var(--line);background:var(--line)}
+body[data-skin="rich"] .btn{
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#7d4bff));
+  box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 28%,transparent)}
+body[data-skin="rich"] .btn.ghost{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
+body[data-skin="rich"] .btn.sub{background:rgba(255,255,255,.09);color:var(--ink)}
+body[data-skin="rich"] .btn.danger{background:rgba(255,90,80,.12);color:#ff9d95;border-color:rgba(255,120,110,.35)}
+body[data-skin="rich"] .iconbtn{background:rgba(255,255,255,.09);color:var(--muted)}
+body[data-skin="rich"] input,body[data-skin="rich"] select,body[data-skin="rich"] textarea{
+  background:rgba(255,255,255,.07);border-color:var(--line);color:var(--ink)}
+body[data-skin="rich"] .blk{background:rgba(255,255,255,.035);border-color:var(--line)}
+body[data-skin="rich"] .pill.non{background:rgba(255,255,255,.09);color:var(--muted)}
+body[data-skin="rich"] nav{
+  background:rgba(8,14,24,.82);border-top:1px solid var(--line);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+body[data-skin="rich"] nav button[aria-selected="true"]{
+  color:var(--accent);text-shadow:0 0 16px var(--accent-soft)}
+body[data-skin="rich"] .modal .sheet{
+  background:linear-gradient(180deg,#0d1727,#070d18);border-top:1px solid var(--line)}
+body[data-skin="rich"] .empty{color:var(--muted)}
+
+/* 入口も派手に */
+body[data-skin="rich"] #login .box{animation:riseIn .8s cubic-bezier(.2,.8,.2,1) both}
+body[data-skin="rich"] #login h1{
+  text-shadow:0 0 30px rgba(120,180,255,.45);letter-spacing:.1em}
+body[data-skin="rich"] #login .mark{
+  box-shadow:0 0 40px rgba(120,180,255,.35);border-color:rgba(160,200,255,.45);
+  animation:pulse 3.4s ease-in-out infinite}
+body[data-skin="rich"] #login .pane{
+  border-color:rgba(160,200,255,.3);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+body[data-skin="rich"] #login .glow{animation-duration:11s}
+}
+
+/* ---------- print (PDF) ---------- */
+#print-root{display:none}
+@media print{
+  @page{size:A4;margin:16mm 15mm}
+  body{background:#fff;padding:0}
+  header,nav,main,.modal{display:none !important}
+  #print-root{display:block;font-size:11.5pt;line-height:1.85;color:#000}
+  #print-root h1{font-size:15pt;text-align:center;margin:0 0 4mm;font-weight:700;letter-spacing:.02em}
+  #print-root .p-meta{text-align:center;font-size:10.5pt;border-bottom:1.2pt solid #000;padding-bottom:2.5mm;margin-bottom:6mm}
+  #print-root h2{font-size:12pt;margin:6mm 0 2mm;padding-left:2mm;border-left:3.5pt solid #000}
+  #print-root ul{margin:0;padding-left:6mm}
+  #print-root li{margin-bottom:1.2mm}
+  #print-root .p-box{border:1pt solid #000;padding:3mm 4mm;margin-top:7mm}
+  #print-root .p-box .lbl{font-weight:700;font-size:10.5pt}
+  #print-root .p-foot{margin-top:5mm;font-size:10.5pt}
+  #print-root .p-sign{margin-top:10mm;text-align:right;font-size:10pt;color:#333}
+}
+</style>
+</head>
+<body data-tab="youth">
+
+<div id="login">
+  <!-- 背景動画のスロット。media/login-bg.mp4 を置くと動く。無ければ下の色だけ -->
+  <video class="login-media" id="lgVideo" autoplay muted loop playsinline
+         onerror="this.remove()" poster="">
+    <source src="media/login-bg.mp4" type="video/mp4">
+  </video>
+  <div class="login-veil"></div>
+  <div class="glow"></div>
+  <div class="box">
+    <div class="mark">🏛</div>
+    <h1>忠生 委員会ボード</h1>
+    <p class="sub">青少年健全育成 忠生第一委員会</p>
+    <div class="pane">
+      <div id="lgBody"></div>
+      <div class="msg" id="lgMsg"></div>
+    </div>
+    <p class="note" id="lgNote"></p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<header>
+  <div class="hd-top">
+    <h1 id="hdTitle">忠生 委員会ボード</h1>
+    <button class="hd-me" id="meBtn">－</button>
+  </div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tabYouth" aria-selected="true" onclick="setTab('youth')">役員会</button>
+    <button role="tab" id="tabMara" aria-selected="false" onclick="setTab('marathon')">忠生マラソン実行委員会</button>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<nav role="tablist">
+  <button aria-selected="true"  onclick="setView('home')"    id="nvhome"><i>🏠</i>ホーム</button>
+  <button aria-selected="false" onclick="setView('attend')"  id="nvattend"><i>✋</i>出欠</button>
+  <button aria-selected="false" onclick="setView('minutes')" id="nvminutes"><i>📄</i>議事録</button>
+  <button aria-selected="false" onclick="setView('tasks')"   id="nvtasks"><i>✅</i>進捗</button>
+  <button aria-selected="false" onclick="setView('settings')" id="nvsettings"><i>⚙️</i>設定</button>
+</nav>
+
+<div class="modal" id="modal">
+  <div class="bd" onclick="closeModal()"></div>
+  <div class="sheet">
+    <div class="sheet-hd">
+      <h3 id="modalTitle"></h3>
+      <button class="iconbtn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div id="print-root"></div>
+
+<script>
+/* =========================================================
+   忠生 委員会ボード
+   - データ層は DB.* に集約（今はローカル保存。共有モードに差し替え可能）
+   ========================================================= */
+const KEY = 'tadao-iinkai-v2';
+
+/* --- つなぎ込み設定 -----------------------------------------
+   GAS_URL が空のあいだは「デモモード」= この端末だけで完結。
+   Apps Script をデプロイして出たウェブアプリURLをここに貼ると、
+   そのまま共有モード（全員で同じデータ）に切り替わる。        */
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx3U0xNZmjpnhqAV0NYY0ZJ7YcEGAf1QuYYPgzHJYtHhOYLvbxVnvAUF_j6ObFq6doU/exec';
+const DEMO    = !GAS_URL;
+const AUTHKEY = 'tadao-iinkai-auth';
+const SKINKEY = 'tadao-iinkai-skin';   // 'simple' | 'rich'
+
+const STATUS = { present:'出席', absent:'欠席', unknown:'未定' };
+const TASK_ST = ['未着手','進行中','完了'];
+
+/* ---------- 初期データ（第3回役員会 議事録より） ---------- */
+function seed(){
+  return {
+    me:{ youth:null, marathon:null },
+    committees:{
+      youth:{
+        name:'青少年健全育成忠生第一委員会',
+        short:'役員会',
+        unit:'役員会',
+        members:['会長','若林','駿河','久住','今村'],
+        meetings:[
+          {
+            id:'y1', no:3, date:'2026-07-24', time:'19:00',
+            place:'忠生市民センター 市民活動室',
+            sections:[
+              { h:'会長挨拶', items:[
+                '昨日、連絡協議会があった。',
+                '学校統合がはじまると地区割も合併になる可能性が出てくる。小山田は今年から統合の話が出ている。統合と同時に地域開発の話（例：小田急線延伸）。2035年予定だが、建築費の高騰の影響で先延ばしになる見込み。',
+                'プールの問題。小学校にプールがあっても老朽化して使えない。これも問題になっている。'
+              ]},
+              { h:'第1回全体会議について', items:[
+                '24の団体に参加してもらえた（町内会の参加が13）。',
+                '委員の名簿が間に合わなかった。',
+                '子供達の公園のゴミの片付けができていない。備品が壊されていた。',
+                '広報誌を40部欲しいという団体があった。'
+              ]},
+              { h:'ものづくり体験', items:[
+                '10月18日(日) 市民センターで開催。',
+                '8月に役員会があるので、そこで会議室（会場）が決まる。',
+                '「何を作るか？」が決まったらLINEに流してもらう（会長）。',
+                'チラシは同時開催のこどもフェスティバルのチラシの中に枠をもらって告知。',
+                '次回の委員会で詳細を詰めていく。',
+                '8月9日にも開催されるので、行ける方は行ってみてください。'
+              ]}
+            ],
+            attend:{ '会長':'present','若林':'present','駿河':'present','久住':'present','今村':'present' },
+            note:''
+          },
+          {
+            id:'y2', no:4, date:'2026-09-18', time:'19:00',
+            place:'忠生市民センター 市民活動室',
+            sections:[], attend:{}, note:''
+          }
+        ],
+        tasks:[]
+      },
+      marathon:{
+        name:'忠生マラソン実行委員会',
+        short:'マラソン実行委員会',
+        unit:'実行委員会',
+        members:['今村'],
+        meetings:[], tasks:[]
+      }
+    }
+  };
+}
+
+/* ---------- データ層（ローカル保存） ---------- */
+const DB = {
+  load(){
+    try{ const r = localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){}
+    const s = seed(); localStorage.setItem(KEY, JSON.stringify(s)); return s;
+  },
+  save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+};
+
+let S = DB.load();
+// 委員会名などの固定ラベルは、端末に保存された古い値ではなく常にこのファイルを正とする
+(function syncLabels(){
+  const meta = seed().committees;
+  Object.keys(meta).forEach(k => {
+    const c = S.committees[k]; if(!c) return;
+    c.name = meta[k].name; c.short = meta[k].short; c.unit = meta[k].unit;
+  });
+})();
+let tab = 'youth';
+let view = 'home';
+const C = () => S.committees[tab];
+const ME = () => S.me[tab];
+const save = () => { DB.save(); render(); };
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- 日付ユーティリティ ---------- */
+const WD = ['日','月','火','水','木','金','土'];
+function d2(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDate(s,opt={}){
+  const d=d2(s); if(!d) return '未定';
+  const w=WD[d.getDay()];
+  return opt.short ? `${d.getMonth()+1}月${d.getDate()}日（${w}）`
+                   : `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${w}）`;
+}
+function daysLeft(s){
+  const d=d2(s); if(!d) return null;
+  const t=new Date(); t.setHours(0,0,0,0);
+  return Math.round((d-t)/86400000);
+}
+function sortedMeetings(){ return [...C().meetings].sort((a,b)=>(a.date||'').localeCompare(b.date||'')); }
+function nextMeeting(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  return sortedMeetings().find(m => d2(m.date) && d2(m.date)>=today) || null;
+}
+function pastMeetings(){
+  const n=nextMeeting();
+  return sortedMeetings().filter(m=>m!==n).reverse();
+}
+function tally(m){
+  const t={present:0,absent:0,unknown:0,none:0};
+  C().members.forEach(n=>{ const v=(m.attend||{})[n]; if(v) t[v]++; else t.none++; });
+  return t;
+}
+
+/* ---------- 画面切替 ---------- */
+function setTab(t){
+  tab=t; document.body.dataset.tab=t;
+  tabYouth.setAttribute('aria-selected', t==='youth');
+  tabMara.setAttribute('aria-selected', t==='marathon');
+  render();
+}
+function setView(v){
+  view=v;
+  ['home','attend','minutes','tasks','settings'].forEach(k=>
+    document.getElementById('nv'+k).setAttribute('aria-selected', k===v));
+  window.scrollTo(0,0); render();
+}
+
+/* ---------- モーダル ---------- */
+function openModal(title, html){
+  modalTitle.textContent=title; modalBody.innerHTML=html; modal.classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){ modal.classList.remove('on'); document.body.style.overflow=''; }
+
+/* =========================================================
+   レンダリング
+   ========================================================= */
+function render(){
+  hdTitle.textContent = '青少年健全育成 忠生第一委員会';
+  meBtn.textContent = ME() || '名前を選ぶ';
+  view === 'home'     ? renderHome()
+  : view === 'attend'  ? renderAttend()
+  : view === 'minutes' ? renderMinutes()
+  : view === 'tasks'   ? renderTasks()
+  : renderSettings();
+}
+
+/* ---------- ホーム ---------- */
+function renderHome(){
+  const m = nextMeeting();
+  let h = '';
+
+  // 1回のログインで両方に入れるので、その委員会に自分がいなければ参加を促す
+  if(ME() && !C().members.includes(ME())){
+    h += `<div class="card">
+      <h2>${esc(C().short)}</h2>
+      <p class="small" style="margin:0 0 12px">あなたはまだこの委員会のメンバーになっていません。
+      参加すると出欠に名前が並びます。</p>
+      <button class="btn wide" onclick="joinCommittee()">この委員会に参加する</button>
+    </div>`;
+  }
+
+  if(m){
+    const dl = daysLeft(m.date);
+    const t = tally(m);
+    const my = ME() ? (m.attend||{})[ME()] : null;
+    h += `<div class="card next">
+      <h2>次回開催</h2>
+      <div class="date">${fmtDate(m.date)}</div>
+      <div class="meta">${esc(m.time||'')}〜　${esc(m.place||'場所未定')}</div>
+      <div class="meta">第${m.no}回${esc(C().unit)}</div>
+      <span class="count">${dl===0?'本日':dl>0?`あと${dl}日`:'日程が過ぎています'}</span>
+      ${ME() ? `<div class="ans">
+        ${Object.entries(STATUS).map(([k,v])=>
+          `<button aria-pressed="${my===k}" onclick="answer('${m.id}','${k}')">${v}</button>`).join('')}
+      </div>` : `<div class="ans"><button onclick="pickMe()">まず自分の名前を選ぶ</button></div>`}
+    </div>
+    <div class="card">
+      <h2>出欠の集まり具合</h2>
+      <div class="tally">
+        <span>出席<b class="pill ok" style="background:none;padding:0">${t.present}</b></span>
+        <span>欠席<b class="pill ng" style="background:none;padding:0">${t.absent}</b></span>
+        <span>未定<b class="pill maybe" style="background:none;padding:0">${t.unknown}</b></span>
+        <span>未回答<b>${t.none}</b></span>
+      </div>
+      <button class="btn ghost wide sm" onclick="setView('attend')">出欠の一覧を見る</button>
+    </div>`;
+  } else {
+    h += `<div class="card">
+      <h2>次回開催</h2>
+      <p class="muted small" style="margin:0 0 12px">次回の予定がまだ登録されていません。</p>
+      <button class="btn wide" onclick="editMeeting()">＋ 次回の会議を登録</button>
+    </div>`;
+  }
+
+  const open = C().tasks.filter(t=>t.st!=='完了');
+  h += `<div class="card">
+    <div class="sec-title"><h2>進捗（未完了 ${open.length}件）</h2>
+      <button class="btn sub sm" onclick="setView('tasks')">すべて</button></div>
+    ${open.length ? `<div class="list">${open.slice(0,4).map(t=>`
+      <button class="item" onclick="editTask('${t.id}')">
+        <span class="pill ${t.st==='進行中'?'line':'non'}">${t.st}</span>
+        <span class="grow"><span class="t">${esc(t.title)}</span>
+          <span class="s">${t.who?esc(t.who)+'　':''}${t.due?'期限 '+fmtDate(t.due,{short:true}):'期限なし'}</span></span>
+        <span class="chev">›</span></button>`).join('')}</div>`
+      : `<div class="empty">未完了の項目はありません</div>`}
+  </div>`;
+
+  const past = pastMeetings().filter(x=>x.sections && x.sections.length);
+  h += `<div class="card">
+    <div class="sec-title"><h2>最近の議事録</h2>
+      <button class="btn sub sm" onclick="setView('minutes')">すべて</button></div>
+    ${past.length ? `<div class="list">${past.slice(0,3).map(x=>`
+      <button class="item" onclick="showMinutes('${x.id}')">
+        <span class="grow"><span class="t">第${x.no}回${esc(C().unit)}</span>
+        <span class="s">${fmtDate(x.date)}</span></span><span class="chev">›</span></button>`).join('')}</div>`
+      : `<div class="empty">まだ議事録がありません</div>`}
+  </div>`;
+
+  view_(h);
+}
+function view_(h){ document.getElementById('view').innerHTML = h; }
+
+function joinCommittee(){
+  if(!ME()) return;
+  C().members.push(ME());
+  commit('saveMember', { name:ME() });
+}
+
+function answer(mid, st){
+  if(!ME()){ pickMe(); return; }
+  const m = C().meetings.find(x=>x.id===mid);
+  m.attend = m.attend || {};
+  m.attend[ME()] = (m.attend[ME()]===st) ? undefined : st;
+  if(!m.attend[ME()]) delete m.attend[ME()];
+  commit('setAttend', { meetingId:mid, name:ME(), status:m.attend[ME()]||'' });
+}
+
+/* ---------- 出欠 ---------- */
+function renderAttend(){
+  const ms = sortedMeetings();
+  if(!ms.length){
+    return view_(`<div class="card"><div class="empty">会議がまだありません</div>
+      <button class="btn wide" onclick="editMeeting()">＋ 会議を登録</button></div>`);
+  }
+  const cur = ms.find(m=>m.id===attendPick) || nextMeeting() || ms[ms.length-1];
+  attendPick = cur.id;
+  const t = tally(cur);
+  view_(`
+    <div class="card">
+      <label class="f"><span>会議を選ぶ</span>
+        <select onchange="attendPick=this.value;render()">
+          ${ms.map(m=>`<option value="${m.id}" ${m.id===cur.id?'selected':''}>第${m.no}回　${fmtDate(m.date,{short:true})}</option>`).join('')}
+        </select></label>
+      <div class="tally" style="margin:0">
+        <span>出席<b>${t.present}</b></span><span>欠席<b>${t.absent}</b></span>
+        <span>未定<b>${t.unknown}</b></span><span>未回答<b>${t.none}</b></span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>メンバーの回答（タップで変更できます）</h2>
+      <div class="list">
+        ${C().members.map(n=>{
+          const v=(cur.attend||{})[n];
+          const cls = v==='present'?'ok':v==='absent'?'ng':v==='unknown'?'maybe':'non';
+          return `<button class="item" onclick="cycle('${cur.id}',${JSON.stringify(n).replace(/"/g,'&quot;')})">
+            <span class="grow"><span class="t">${esc(n)}${n===ME()?' <span class="pill line">自分</span>':''}</span></span>
+            <span class="pill ${cls}">${v?STATUS[v]:'未回答'}</span></button>`;
+        }).join('')}
+      </div>
+      <p class="muted small" style="margin:10px 2px 0">当日に代理で入力するときもここから変えられます。</p>
+    </div>`);
+}
+let attendPick = null;
+function cycle(mid, name){
+  const m=C().meetings.find(x=>x.id===mid); m.attend=m.attend||{};
+  const order=[undefined,'present','absent','unknown'];
+  const i=order.indexOf(m.attend[name]);
+  const nx=order[(i+1)%order.length];
+  if(nx) m.attend[name]=nx; else delete m.attend[name];
+  commit('setAttend', { meetingId:mid, name:name, status:nx||'' });
+}
+
+/* ---------- 議事録 ---------- */
+function renderMinutes(){
+  const ms = sortedMeetings().reverse();
+  view_(`
+    <div class="sec-title"><h2>議事録・会議一覧</h2>
+      <button class="btn sm" onclick="editMeeting()">＋ 会議を追加</button></div>
+    ${ms.length ? `<div class="list">${ms.map(m=>{
+      const has = m.sections && m.sections.length;
+      return `<button class="item" onclick="showMinutes('${m.id}')">
+        <span class="grow"><span class="t">第${m.no}回${esc(C().unit)}</span>
+          <span class="s">${fmtDate(m.date)}　${esc(m.place||'')}</span></span>
+        ${m.pdf?'<span class="pill line">📎</span>':''}
+        <span class="pill ${has?'line':'non'}">${has?'議事録あり':'未記入'}</span>
+        <span class="chev">›</span></button>`;
+    }).join('')}</div>` : `<div class="card"><div class="empty">会議がまだありません</div></div>`}
+    <p class="muted small" style="margin:12px 2px">議事録を開くと「PDFで保存」できます。</p>`);
+}
+
+function showMinutes(id){
+  const m = C().meetings.find(x=>x.id===id);
+  const att = C().members.filter(n=>(m.attend||{})[n]==='present');
+  const body = `
+    <div class="card">
+      <div class="muted small">${fmtDate(m.date)}　${esc(m.time||'')}〜</div>
+      <div class="muted small">${esc(m.place||'場所未定')}</div>
+    </div>
+    ${(m.sections&&m.sections.length) ? m.sections.map((s,si)=>`
+      <div class="card"><h2 style="color:var(--accent);font-size:15px">${esc(s.h)}</h2>
+        ${s.items.map((it,ii)=>{
+          if(!it) return '';
+          const done = C().tasks.some(t=>t.src===`${m.id}:${si}:${ii}`);
+          return `<div class="mi">
+            <span class="mt">${esc(it)}</span>
+            ${done ? `<span class="pill line">進捗に登録済</span>`
+                   : `<button class="btn sub sm pick" onclick="pickTask('${m.id}',${si},${ii})">＋進捗</button>`}
+          </div>`;
+        }).join('')}
+      </div>`).join('')
+      : `<div class="card"><div class="empty">議事録はまだ書かれていません</div></div>`}
+    <p class="muted small" style="margin:-4px 2px 14px">「＋進捗」を押すと、その行を宿題として進捗タブに送れます。</p>
+    <div class="card"><h2>本日の出席</h2>
+      <div>${att.length?att.map(esc).join('・'):'<span class="muted small">記録なし</span>'}</div></div>
+    <div class="card">
+      <h2>PDFの控え</h2>
+      ${m.pdf ? `<div class="row">
+          <button class="btn ghost" style="flex:2;min-width:0" onclick="openPdf('${m.pdf.id}','${esc(m.pdf.name)}')">
+            📎 ${esc(m.pdf.name)}</button>
+          <button class="btn danger" onclick="removePdf('${m.id}')">🗑</button>
+        </div>
+        <p class="muted small" style="margin:9px 2px 0">Driveの「青少健議事録」フォルダに入っています。</p>`
+      : `<button class="btn sub wide" onclick="attachPdf('${m.id}')">📎 PDFを添付する</button>
+        <p class="muted small" style="margin:9px 2px 0">前に作った議事録のPDFを、この回に紐づけて残せます。</p>`}
+    </div>
+    <div class="row">
+      <button class="btn ghost" style="flex:1" onclick="editMinutes('${m.id}')">✏️ 編集</button>
+      <button class="btn" style="flex:1" onclick="printMinutes('${m.id}')">📄 PDFで保存</button>
+    </div>`;
+  openModal(`第${m.no}回${C().unit}　議事録`, body);
+}
+
+/* ---------- 議事録PDFの添付（Driveへ保存） ---------- */
+function attachPdf(mid){
+  if(DEMO){ toast('つなぎ込み後に使えます'); return; }
+  const i = document.createElement('input');
+  i.type='file'; i.accept='application/pdf';
+  i.onchange = () => {
+    const f = i.files[0]; if(!f) return;
+    if(f.size > 5*1024*1024){ alert('5MBを超えるPDFは送れません。スキャンなら画質を下げてください。'); return; }
+    sendPdf(mid, f);
+  };
+  i.click();
+}
+
+/** 一度に送れる量に上限があるので、20KBずつに小分けして送る */
+async function sendPdf(mid, file){
+  const CHUNK = 20*1024;
+  try{
+    const u8 = new Uint8Array(await file.arrayBuffer());
+    const count = Math.max(1, Math.ceil(u8.length / CHUNK));
+    const uploadId = uid() + Math.floor(Math.random()*1e6).toString(36);
+    for(let i=0; i<count; i++){
+      const part = u8.subarray(i*CHUNK, (i+1)*CHUNK);
+      let s = '';
+      for(let k=0; k<part.length; k+=8192) s += String.fromCharCode.apply(null, part.subarray(k, k+8192));
+      await api('uploadChunk', { uploadId, index:i, data:btoa(s) });
+      toast(`アップロード中… ${Math.round((i+1)/count*100)}%`);
+    }
+    const j = await api('uploadDone', { uploadId, count, meetingId:mid, name:file.name });
+    applyState(j, tab); render(); closeModal();
+    setTimeout(()=>showMinutes(mid), 80);
+    toast('PDFを保存しました');
+  }catch(e){ toast('保存できませんでした（'+e.message+'）'); }
+}
+function openPdf(fileId, name){
+  toast('PDFを取り出しています…');
+  api('getPdf', { fileId })
+    .then(j => {
+      const bin = atob(j.data), u8 = new Uint8Array(bin.length);
+      for(let k=0;k<bin.length;k++) u8[k] = bin.charCodeAt(k);
+      const url = URL.createObjectURL(new Blob([u8], { type:'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = name || j.name || '議事録.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 60000);
+    })
+    .catch(e => toast('開けませんでした（'+e.message+'）'));
+}
+function removePdf(mid){
+  if(!confirm('添付したPDFを外します。よろしいですか？')) return;
+  api('delPdf', { meetingId:mid })
+    .then(j => { applyState(j, tab); render(); closeModal();
+                 setTimeout(()=>showMinutes(mid), 80); toast('外しました'); })
+    .catch(e => toast('外せませんでした（'+e.message+'）'));
+}
+
+function editMinutes(id){
+  const m = C().meetings.find(x=>x.id===id);
+  draft = JSON.parse(JSON.stringify(m.sections||[]));
+  if(!draft.length) draft=[{h:'',items:['']}];
+  renderEditor(m);
+}
+let draft = [];
+function renderEditor(m){
+  const body = `
+    <div class="card">
+      <p class="muted small" style="margin:0 0 10px">見出しごとに、箇条書きで書いていきます。空欄は保存時に消えます。</p>
+      <div id="blks">${draft.map((s,i)=>blkHtml(s,i)).join('')}</div>
+      <button class="btn sub wide sm" onclick="addBlk()">＋ 見出しを追加</button>
+    </div>
+    <div class="row">
+      <button class="btn sub" style="flex:1" onclick="closeModal()">やめる</button>
+      <button class="btn" style="flex:2" onclick="saveMinutes('${m.id}')">保存する</button>
+    </div>`;
+  openModal(`第${m.no}回　議事録を書く`, body);
+  growAll();
+}
+function growAll(){ document.querySelectorAll('#blks textarea').forEach(autoGrow); }
+function blkHtml(s,i){
+  return `<div class="blk">
+    <div class="bh">
+      <input type="text" placeholder="見出し（例：会長挨拶）" value="${esc(s.h)}"
+        oninput="draft[${i}].h=this.value">
+      <button class="iconbtn x" onclick="delBlk(${i})">🗑</button>
+    </div>
+    ${s.items.map((it,j)=>`
+      <div class="bh">
+        <span class="muted">・</span>
+        <textarea rows="2" placeholder="内容" oninput="draft[${i}].items[${j}]=this.value; autoGrow(this)"
+          style="min-height:52px">${esc(it)}</textarea>
+        <button class="iconbtn x" onclick="delItem(${i},${j})">✕</button>
+      </div>`).join('')}
+    <button class="btn sub sm" onclick="addItem(${i})">＋ 行を追加</button>
+  </div>`;
+}
+function autoGrow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight+2)+'px'; }
+function addBlk(){ draft.push({h:'',items:['']}); refreshBlks(); }
+function delBlk(i){ draft.splice(i,1); if(!draft.length) draft=[{h:'',items:['']}]; refreshBlks(); }
+function addItem(i){ draft[i].items.push(''); refreshBlks(); }
+function delItem(i,j){ draft[i].items.splice(j,1); if(!draft[i].items.length) draft[i].items=['']; refreshBlks(); }
+function refreshBlks(){
+  document.getElementById('blks').innerHTML = draft.map((s,i)=>blkHtml(s,i)).join('');
+  growAll();
+}
+function saveMinutes(id){
+  const m = C().meetings.find(x=>x.id===id);
+  m.sections = draft.map(s=>({h:s.h.trim(), items:s.items.map(x=>x.trim()).filter(Boolean)}))
+                    .filter(s=>s.h || s.items.length);
+  closeModal();
+  commit('saveMeeting', { meeting:m });
+  setTimeout(()=>showMinutes(id), 80);
+}
+
+/* ---------- 会議の登録・編集 ---------- */
+function editMeeting(id){
+  const m = id ? C().meetings.find(x=>x.id===id) : null;
+  const nextNo = Math.max(0, ...C().meetings.map(x=>x.no||0)) + 1;
+  const body = `
+    <div class="card">
+      <div class="grid2">
+        <label class="f"><span>回数</span><input type="number" id="fNo" value="${m?m.no:nextNo}"></label>
+        <label class="f"><span>開始時刻</span><input type="time" id="fTime" value="${m?m.time||'19:00':'19:00'}"></label>
+      </div>
+      <label class="f"><span>開催日</span><input type="date" id="fDate" value="${m?m.date||'':''}"></label>
+      <label class="f"><span>場所</span><input type="text" id="fPlace" placeholder="忠生市民センター 市民活動室"
+        value="${m?esc(m.place||''):'忠生市民センター 市民活動室'}"></label>
+    </div>
+    <div class="row">
+      ${m?`<button class="btn danger" onclick="delMeeting('${m.id}')">削除</button>`:''}
+      <button class="btn" style="flex:1" onclick="saveMeeting(${m?`'${m.id}'`:'null'})">保存する</button>
+    </div>`;
+  openModal(m?`第${m.no}回 の予定を編集`:'会議を登録', body);
+}
+function saveMeeting(id){
+  const o = { no:+fNo.value||1, time:fTime.value, date:fDate.value, place:fPlace.value.trim() };
+  let m;
+  if(id){ m = C().meetings.find(x=>x.id===id); Object.assign(m, o); }
+  else  { m = { id:uid(), ...o, sections:[], attend:{} }; C().meetings.push(m); }
+  closeModal(); commit('saveMeeting', { meeting:m });
+}
+function delMeeting(id){
+  if(!confirm('この会議を削除します。よろしいですか？')) return;
+  C().meetings = C().meetings.filter(x=>x.id!==id);
+  closeModal(); commit('delMeeting', { id });
+}
+
+/* ---------- 進捗 ---------- */
+function renderTasks(){
+  const g = st => C().tasks.filter(t=>t.st===st);
+  view_(`
+    <div class="sec-title"><h2>進捗状況</h2>
+      <button class="btn sm" onclick="editTask()">＋ 追加</button></div>
+    ${TASK_ST.map(st=>{
+      const arr=g(st);
+      return `<div class="card">
+        <h2>${st}　${arr.length}件</h2>
+        ${arr.length?`<div class="list">${arr.map(t=>`
+          <button class="item" onclick="editTask('${t.id}')">
+            <span class="grow"><span class="t" ${st==='完了'?'style="color:var(--muted);text-decoration:line-through"':''}>${esc(t.title)}</span>
+              <span class="s">${t.who?esc(t.who)+'　':'担当なし　'}${t.due?'期限 '+fmtDate(t.due,{short:true}):''}${srcLabel(t)}</span></span>
+            <span class="chev">›</span></button>`).join('')}</div>`
+          :`<div class="empty">なし</div>`}
+      </div>`;
+    }).join('')}`);
+}
+function srcLabel(t){
+  if(!t.src) return '';
+  const m = C().meetings.find(x=>x.id===t.src.split(':')[0]);
+  return m ? `　<span style="color:var(--accent)">第${m.no}回の議事録より</span>` : '';
+}
+function pickTask(mid, si, ii){
+  const m = C().meetings.find(x=>x.id===mid);
+  editTask(null, { title:m.sections[si].items[ii], src:`${mid}:${si}:${ii}`, back:mid });
+}
+function editTask(id, pre){
+  const t = id ? C().tasks.find(x=>x.id===id) : null;
+  taskPre = pre || null;
+  const body = `
+    <div class="card">
+      <label class="f"><span>やること</span><input type="text" id="kTitle" value="${t?esc(t.title):pre?esc(pre.title):''}" placeholder="例：会場を予約する"></label>
+      <div class="grid2">
+        <label class="f"><span>担当</span>
+          <select id="kWho"><option value="">未定</option>
+          ${C().members.map(n=>`<option ${t&&t.who===n?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+        <label class="f"><span>期限</span><input type="date" id="kDue" value="${t?t.due||'':''}"></label>
+      </div>
+      <label class="f"><span>状態</span>
+        <select id="kSt">${TASK_ST.map(s=>`<option ${t&&t.st===s?'selected':''}>${s}</option>`).join('')}</select></label>
+    </div>
+    <div class="row">
+      ${t?`<button class="btn danger" onclick="delTask('${t.id}')">削除</button>`:''}
+      <button class="btn" style="flex:1" onclick="saveTask(${t?`'${t.id}'`:'null'})">保存する</button>
+    </div>`;
+  openModal(t?'項目を編集':'進捗を追加', body);
+}
+let taskPre = null;
+function saveTask(id){
+  const o={ title:kTitle.value.trim(), who:kWho.value, due:kDue.value, st:kSt.value };
+  if(!o.title){ alert('やることを入力してください'); return; }
+  let t;
+  if(id){ t = C().tasks.find(x=>x.id===id); Object.assign(t, o); }
+  else  { t = { id:uid(), ...o, src:taskPre?taskPre.src:'' }; C().tasks.push(t); }
+  const back = taskPre && taskPre.back;
+  taskPre = null; closeModal(); commit('saveTask', { task:t });
+  if(back) setTimeout(()=>showMinutes(back), 80);
+}
+function delTask(id){
+  if(!confirm('この項目を削除します。よろしいですか？')) return;
+  C().tasks = C().tasks.filter(x=>x.id!==id); closeModal(); commit('delTask', { id });
+}
+
+/* ---------- 設定 ---------- */
+function renderSettings(){
+  view_(`
+    <div class="card">
+      <h2>見た目</h2>
+      <div class="row">
+        <button class="btn ${skin==='simple'?'':'sub'}" style="flex:1" onclick="setSkin('simple')">シンプル</button>
+        <button class="btn ${skin==='rich'?'':'sub'}" style="flex:1" onclick="setSkin('rich')">くっきり派手</button>
+      </div>
+      <p class="muted small" style="margin:10px 2px 0">この端末だけの設定です。いつでも戻せます。</p>
+    </div>
+    <div class="card">
+      <h2>自分の名前</h2>
+      <div class="row"><button class="btn ghost wide" onclick="pickMe()">${ME()?esc(ME()):'名前を選ぶ'}</button></div>
+      <p class="muted small" style="margin:10px 2px 0">出欠を回答するときに使います。この端末にだけ保存されます。</p>
+    </div>
+    <div class="card">
+      <div class="sec-title"><h2>${esc(C().short)}のメンバー</h2>
+        <button class="btn sm" onclick="addMember()">＋ 追加</button></div>
+      <div class="list">${C().members.map((n,i)=>`
+        <div class="item"><span class="grow"><span class="t">${esc(n)}</span></span>
+          <button class="iconbtn x" onclick="delMember(${i})">🗑</button></div>`).join('')}
+      </div>
+    </div>
+    ${(DEMO || !ME() || ME()!==C().admin) ? '' : `<div class="card">
+      <h2>合言葉を変える</h2>
+      <label class="f"><span>いまの合言葉</span><input type="password" id="pOld" autocomplete="off"></label>
+      <label class="f"><span>新しい合言葉</span><input type="text" id="pNew" autocomplete="off"></label>
+      <button class="btn wide" onclick="changePass()">変更する</button>
+      <p class="muted small" style="margin:10px 2px 0">変えると、次からログインする人は新しい合言葉が必要になります。
+      すでにFace IDを登録した端末はそのまま開けます。</p>
+    </div>`}
+    <div class="card">
+      <h2>データの持ち出し</h2>
+      <div class="row">
+        <button class="btn sub" style="flex:1" onclick="exportJson()">書き出し</button>
+        <button class="btn sub" style="flex:1" onclick="importJson()">読み込み</button>
+      </div>
+      <p class="muted small" style="margin:10px 2px 0">${DEMO
+        ? 'いまはこの端末の中だけにデータがあります（バックアップ用）。'
+        : 'ふだんは全員のデータがスプレッドシートに入ります。これは控えです。'}</p>
+    </div>
+    <div class="card">
+      <button class="btn sub wide" onclick="logout()">ログアウト</button>
+    </div>`);
+}
+function changePass(){
+  const current = pOld.value.trim(), next = pNew.value.trim();
+  if(!current || !next){ toast('両方入れてください'); return; }
+  api('setPass', { committee:'youth', current, next })
+    .then(() => { pOld.value=''; pNew.value=''; toast('合言葉を変えました'); })
+    .catch(e => toast(e.message));
+}
+
+let skin = localStorage.getItem(SKINKEY) || 'simple';
+function applySkin(){ document.body.dataset.skin = skin; }
+function setSkin(s){ skin = s; localStorage.setItem(SKINKEY, s); applySkin(); render(); }
+
+function pickMe(){
+  openModal('自分の名前を選ぶ', `<div class="card"><div class="list">
+    ${C().members.map(n=>`<button class="item" onclick="setMe(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+      <span class="grow"><span class="t">${esc(n)}</span></span>
+      ${n===ME()?'<span class="pill line">選択中</span>':'<span class="chev">›</span>'}</button>`).join('')}
+  </div></div>`);
+}
+function setMe(n){ S.me[tab]=n; closeModal(); save(); }
+function addMember(){
+  const n=prompt('名前を入力してください'); if(!n||!n.trim()) return;
+  C().members.push(n.trim()); commit('saveMember', { name:n.trim() });
+}
+function delMember(i){
+  const n=C().members[i];
+  if(!confirm(`${n} さんを外します。よろしいですか？`)) return;
+  C().members.splice(i,1); if(S.me[tab]===n) S.me[tab]=null;
+  commit('delMember', { name:n });
+}
+function exportJson(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='忠生委員会ボード_バックアップ.json'; a.click();
+}
+function importJson(){
+  const i=document.createElement('input'); i.type='file'; i.accept='.json';
+  i.onchange=()=>{ const f=i.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ try{ S=JSON.parse(r.result); DB.save(); render(); alert('読み込みました'); }
+                   catch(e){ alert('読み込めませんでした'); } };
+    r.readAsText(f); };
+  i.click();
+}
+
+/* ---------- PDF出力（印刷 → PDFとして保存） ---------- */
+function printMinutes(id){
+  const c = C();
+  const m = c.meetings.find(x=>x.id===id);
+  const att = c.members.filter(n=>(m.attend||{})[n]==='present');
+  const nx = sortedMeetings().find(x => x.date > m.date);
+  const sec = (m.sections||[]).filter(s=>s.h||s.items.length);
+
+  document.getElementById('print-root').innerHTML = `
+    <h1>${esc(c.name)}　第${m.no}回${esc(c.unit)}　議事録</h1>
+    <div class="p-meta">日時：${fmtDate(m.date)} ${esc(m.time||'')}〜　／　場所：${esc(m.place||'')}</div>
+    ${sec.map(s=>`<h2>${esc(s.h)}</h2><ul>${s.items.map(i=>`<li>${esc(i)}</li>`).join('')}</ul>`).join('')}
+    ${nx ? `<div class="p-box"><span class="lbl">次回開催</span>　${fmtDate(nx.date)} ${esc(nx.time||'')}〜　${esc(nx.place||'')}</div>` : ''}
+    <div class="p-foot">本日の出席：${att.length?att.map(esc).join('・'):'―'}（出席 ${att.length}名／全 ${c.members.length}名）</div>
+    <div class="p-sign">記録：${esc(ME()||'')}</div>`;
+  closeModal();
+  setTimeout(()=>window.print(), 120);
+}
+
+/* =========================================================
+   サーバー（GAS）とのやりとり
+   ========================================================= */
+/* ログインは委員会ごとではなく1回だけ。
+   マラソン実行委員会は青少健の中の組織なので、合言葉も入口も1つ。 */
+let auth = null;            // {token, name, credId}
+let unlocked = false;
+
+function loadAuth(){
+  try{ auth = JSON.parse(localStorage.getItem(AUTHKEY)) || null; }catch(e){}
+}
+function saveAuth(){ localStorage.setItem(AUTHKEY, JSON.stringify(auth)); }
+
+async function api(action, payload, t){
+  const c = t || tab;
+  const body = Object.assign({ action, committee:c, token:auth && auth.token }, payload||{});
+  const r = await fetch(GAS_URL, { method:'POST', body:JSON.stringify(body) });
+  const j = await r.json();
+  if(!j.ok) throw new Error(j.error || '通信に失敗しました');
+  return j;
+}
+function applyState(st, t){
+  const c = S.committees[t || tab];
+  c.admin    = st.admin || '';
+  c.members  = st.members  || [];
+  c.meetings = (st.meetings || []).map(m => Object.assign({attend:{}}, m));
+  c.tasks    = st.tasks    || [];
+  DB.save();
+}
+/** 画面を先に更新し、裏でサーバーに送る */
+function commit(action, payload){
+  DB.save(); render();
+  if(DEMO) return;
+  const t = tab;
+  api(action, payload, t)
+    .then(j => { applyState(j, t); if(tab===t) render(); })
+    .catch(e => toast('保存できませんでした（' + e.message + '）'));
+}
+let toastTimer=null;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('on'), 3200);
+}
+
+/* =========================================================
+   ログイン（毎回。合言葉 → 名前登録 → 以降は端末のFace ID）
+   ========================================================= */
+const canFace = !!(window.PublicKeyCredential && navigator.credentials);
+
+let lgMode = 'login';      // 'login'（登録済みの人）| 'signup'（はじめての人）
+let lgPassCache = '';      // 合言葉を通したあと、名前を選ぶまで持っておく
+let lgRoster = null;       // 登録済みの名前一覧
+
+function lgSet(m){ lgMode = m; lgMsg.textContent=''; lgRender(); }
+
+function lgRender(){
+  const a = auth;
+  lgMsg.textContent = '';
+
+  // この端末で前に入った人 → Face ID か合言葉だけで開ける
+  if(a && a.name){
+    lgBody.innerHTML = `
+      <p class="hello">おかえりなさい<br><b>${esc(a.name)}</b> さん</p>
+      ${(a.credId && canFace)
+        ? `<button class="btn" onclick="faceLogin()">🔒 Face ID / 指紋でひらく</button>`
+        : `<input type="password" id="lgPass" placeholder="合言葉" autocomplete="off">
+           <button class="btn" onclick="passLogin('${esc(a.name)}','login')">ひらく</button>`}
+      <button class="link" onclick="lgForget()">別の人としてつかう</button>`;
+  }
+  // はじめての人：合言葉＋名前を登録
+  else if(lgMode === 'signup'){
+    lgBody.innerHTML = segHtml() + `
+      <input type="password" id="lgPass" placeholder="合言葉" autocomplete="off">
+      <input type="text" id="lgName" placeholder="あなたの名前（例：今村）" autocomplete="off">
+      <button class="btn" onclick="passLogin(null,'signup')">この名前で登録する</button>`;
+  }
+  // 登録済みの人：合言葉 → 名前をタップ
+  else if(lgRoster){
+    lgBody.innerHTML = segHtml() + `
+      <p class="hello" style="margin-bottom:10px">自分の名前をえらんでください</p>
+      ${lgRoster.length
+        ? lgRoster.map(n => `<button class="btn line" style="margin-bottom:8px"
+            onclick="passLogin(${JSON.stringify(n).replace(/"/g,'&quot;')},'login')">${esc(n)}</button>`).join('')
+        : '<p class="hello">まだ誰も登録されていません</p>'}
+      <button class="link" onclick="lgRoster=null;lgRender()">合言葉を入れ直す</button>`;
+  }
+  else{
+    lgBody.innerHTML = segHtml() + `
+      <input type="password" id="lgPass" placeholder="合言葉" autocomplete="off">
+      <button class="btn" onclick="askRoster()">つぎへ</button>`;
+  }
+
+  lgNote.innerHTML = DEMO
+    ? 'デモ表示中（サーバー未接続）。合言葉は何でも通ります。'
+    : '合言葉は委員会から配られたものです。<br>名前の登録は、はじめの1回だけです。';
+}
+function segHtml(){
+  return `<div class="seg">
+    <button aria-pressed="${lgMode==='login'}"  onclick="lgSet('login')">ログイン</button>
+    <button aria-pressed="${lgMode==='signup'}" onclick="lgSet('signup')">はじめての方</button>
+  </div>`;
+}
+function lgForget(){ auth=null; lgRoster=null; lgPassCache=''; saveAuth(); lgRender(); }
+
+/** 合言葉だけ先に照合して、登録済みの名前を出す */
+async function askRoster(){
+  const pass = ((document.getElementById('lgPass')||{}).value||'').trim();
+  if(!pass){ lgMsg.textContent = '合言葉を入れてください'; return; }
+  if(DEMO){ lgPassCache = pass; lgRoster = C().members.slice(); return lgRender(); }
+  lgMsg.textContent = '確認しています…';
+  try{
+    const j = await api('roster', { pass }, 'youth');
+    lgPassCache = pass;
+    lgRoster = j.members || [];
+    lgRender();
+    if(!lgRoster.length) lgMsg.textContent = 'まだ誰も登録されていません。「はじめての方」から登録してください。';
+  }catch(e){ lgMsg.textContent = e.message; }
+}
+
+async function passLogin(known, mode){
+  const typed = ((document.getElementById('lgPass')||{}).value || '').trim();
+  const pass = typed || lgPassCache;
+  const name = known || ((document.getElementById('lgName')||{}).value || '').trim();
+  if(!name){ lgMsg.textContent='名前を入力してください'; return; }
+  if(!DEMO && !pass){ lgMsg.textContent='合言葉を入力してください'; return; }
+
+  if(DEMO){
+    auth = { token:'demo', name:name, credId:(auth||{}).credId||'' };
+    saveAuth();
+    ['youth','marathon'].forEach(c=>{
+      if(!S.committees[c].members.includes(name)) S.committees[c].members.push(name);
+      S.me[c] = name;
+    });
+    return afterLogin();
+  }
+  lgMsg.textContent = '確認しています…';
+  try{
+    const j = await api('login', { pass, name, mode:mode||'login', credId:(auth||{}).credId||'' }, 'youth');
+    auth = { token:j.token, name:j.name, credId:(auth||{}).credId||'' };
+    saveAuth();
+    applyState(j.state, 'youth');
+    S.me.youth = S.me.marathon = j.name;
+    afterLogin();
+    pullOther();
+  }catch(e){ lgMsg.textContent = e.message; }
+}
+
+/** マラソン側もあとから読み込む（入口を待たせない） */
+async function pullOther(){
+  try{
+    const j = await api('pull', {}, 'marathon');
+    applyState(j, 'marathon');
+    if(tab==='marathon') render();
+  }catch(e){ toast('マラソン側を読み込めませんでした'); }
+}
+
+async function afterLogin(){
+  unlocked = true;
+  document.getElementById('login').classList.add('hide');
+  setTab(tab);
+  if(!auth.credId && canFace) setTimeout(offerFace, 600);
+}
+
+/** 次回から Face ID で開けるように、この端末を登録する */
+function offerFace(){
+  openModal('次回から Face ID でひらく', `
+    <div class="card">
+      <p class="small" style="margin:0 0 6px">この端末を登録しておくと、次からは合言葉を入れずに
+      Face ID（または指紋）だけでひらけます。</p>
+      <p class="muted small" style="margin:0">登録するのはこの端末だけです。顔写真がどこかに送られることはありません。</p>
+    </div>
+    <div class="row">
+      <button class="btn sub" style="flex:1" onclick="closeModal()">あとで</button>
+      <button class="btn" style="flex:2" onclick="regFace()">登録する</button>
+    </div>`);
+}
+async function regFace(){
+  try{
+    const cred = await navigator.credentials.create({ publicKey:{
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      rp:{ name:'忠生 委員会ボード' },
+      user:{ id: crypto.getRandomValues(new Uint8Array(16)),
+             name: auth.name, displayName: auth.name },
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{ authenticatorAttachment:'platform',
+                               userVerification:'required', residentKey:'preferred' },
+      timeout:60000
+    }});
+    auth.credId = b64_(cred.rawId); saveAuth();
+    if(!DEMO) api('saveMember', { name:auth.name, credId:auth.credId }, 'youth').catch(()=>{});
+    closeModal(); toast('登録しました。次回からFace IDでひらけます');
+  }catch(e){ closeModal(); toast('登録できませんでした（この端末では使えないかもしれません）'); }
+}
+async function faceLogin(){
+  const a = auth;
+  lgMsg.textContent = '';
+  try{
+    await navigator.credentials.get({ publicKey:{
+      challenge: crypto.getRandomValues(new Uint8Array(32)),
+      allowCredentials:[{ type:'public-key', id: unb64_(a.credId) }],
+      userVerification:'required', timeout:60000
+    }});
+  }catch(e){ lgMsg.textContent='確認できませんでした。合言葉でもひらけます。';
+             lgBody.innerHTML += `<input type="password" id="lgPass" placeholder="合言葉" style="margin-top:10px">
+               <button class="btn line" onclick="passLogin('${esc(a.name)}')">合言葉でひらく</button>`; return; }
+  if(DEMO){ S.me.youth = S.me.marathon = a.name; return afterLogin(); }
+  try{
+    const j = await api('pull', {}, 'youth');
+    applyState(j, 'youth');
+    S.me.youth = S.me.marathon = a.name;
+    afterLogin();
+    pullOther();
+  }catch(e){
+    auth=null; saveAuth(); lgMsg.textContent='もう一度ログインしてください'; lgRender();
+  }
+}
+const b64_  = buf => btoa(String.fromCharCode(...new Uint8Array(buf)))
+                      .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const unb64_= s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+
+function logout(){
+  unlocked = false;
+  lgRender();
+  document.getElementById('login').classList.remove('hide');
+}
+
+/* ---------- 起動 ---------- */
+meBtn.onclick = pickMe;
+
+/* 背景動画は端末によって自動再生が止められることがあるので、都度そっと動かす */
+(function(){
+  const v = document.getElementById('lgVideo');
+  if(!v) return;
+  const kick = () => { const p = v.play(); if(p) p.catch(()=>{}); };
+  kick();
+  ['loadeddata','canplay'].forEach(ev => v.addEventListener(ev, kick));
+  document.addEventListener('visibilitychange', kick);
+  document.addEventListener('touchstart', kick, { once:true, passive:true });
+})();
+
+applySkin();
+loadAuth();
+lgRender();
+render();
+</script>
+</body>
+</html>
