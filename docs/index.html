@@ -1233,10 +1233,24 @@ function saveAuth(){ localStorage.setItem(AUTHKEY, JSON.stringify(auth)); }
 async function api(action, payload, t){
   const c = t || tab;
   const body = Object.assign({ action, committee:c, token:auth && auth.token }, payload||{});
-  const r = await fetch(GAS_URL, { method:'POST', body:JSON.stringify(body) });
-  const j = await r.json();
-  if(!j.ok) throw new Error(j.error || '通信に失敗しました');
-  return j;
+  // Google側が一時的にエラーページを返すことがあるので、1度だけ待って再送する
+  let last = null;
+  for(let i=0; i<2; i++){
+    if(i) await new Promise(s => setTimeout(s, 1800));
+    try{
+      const r = await fetch(GAS_URL, { method:'POST', body:JSON.stringify(body) });
+      const txt = await r.text();
+      let j;
+      try { j = JSON.parse(txt); }
+      catch(e){ last = new Error('サーバーにつながりませんでした。もう一度お試しください。'); continue; }
+      if(!j.ok) throw new Error(j.error || '通信に失敗しました');
+      return j;
+    }catch(e){
+      if(/つながりませんでした/.test(e.message)){ last = e; continue; }
+      throw e;                      // 合言葉が違う等は、そのまま伝える
+    }
+  }
+  throw last || new Error('通信に失敗しました');
 }
 function applyState(st, t){
   const c = S.committees[t || tab];
