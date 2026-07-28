@@ -1148,6 +1148,23 @@ function kickBg(){
   const p = v.play(); if(p) p.catch(()=>{});
 }
 
+/** 右上の名前を押したとき。設定は管理者だけなので、
+    見た目の切り替えとログアウトはここから誰でも行ける */
+function myMenu(){
+  openModal(`${ME()} さん`, `
+    <div class="card">
+      <h2>見た目</h2>
+      <div class="row">
+        <button class="btn ${skin==='simple'?'':'sub'}" style="flex:1" onclick="setSkin('simple');closeModal()">シンプル</button>
+        <button class="btn ${skin==='rich'?'':'sub'}" style="flex:1" onclick="setSkin('rich');closeModal()">立体・派手</button>
+      </div>
+      <p class="muted small" style="margin:10px 2px 0">この端末だけの設定です。いつでも戻せます。</p>
+    </div>
+    <div class="card">
+      <button class="btn sub wide" onclick="closeModal();logout()">ログアウト</button>
+    </div>`);
+}
+
 function pickMe(){
   openModal('自分の名前を選ぶ', `<div class="card"><div class="list">
     ${C().members.map(n=>`<button class="item" onclick="setMe(${JSON.stringify(n).replace(/"/g,'&quot;')})">
@@ -1405,7 +1422,7 @@ function logout(){
 }
 
 /* ---------- 起動 ---------- */
-meBtn.onclick = pickMe;
+meBtn.onclick = () => ME() ? myMenu() : pickMe();
 
 /* 背景動画。横長の画面では絵の全体が入る横用を使う。
    端末によって自動再生が止められることがあるので、都度そっと動かす */
